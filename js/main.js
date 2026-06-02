@@ -508,16 +508,17 @@ ro.observe(document.getElementById('stick-wrap'));
 function dismissIntro() {
   introScreen.classList.add('hiding');
   app.hidden = false;
-  app.style.animation = 'fade-in 0.4s var(--ease-out) both';
-  introScreen.addEventListener('transitionend', () => introScreen.remove(), { once: true });
-
-  // Load first move by default
+  app.style.animation = 'fade-in 0.4s cubic-bezier(0.16,1,0.3,1) both';
+  // Remove after the CSS opacity transition (400ms = --dur-slow)
+  setTimeout(() => introScreen.remove(), 450);
   loadMove(MOVES[0]);
 }
 
-// Animate loader bar then show app
-introBar.style.width = '100%';
-setTimeout(dismissIntro, 1200);
+// Defer bar animation one frame so browser paints width:0 first
+requestAnimationFrame(() => {
+  introBar.style.width = '100%';
+});
+setTimeout(dismissIntro, 1400);
 
 // ── Build sidebar on load ──────────────────────────────────
 buildSidebar();
