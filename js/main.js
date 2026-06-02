@@ -1,5 +1,6 @@
 import { MOVES, LEVELS } from './moves/move-data.js';
 import { StickCamRenderer } from './renderers/stick-cam.js';
+import { FpvCamRenderer }  from './renderers/fpv-cam.js';
 
 // ── DOM refs ───────────────────────────────────────────────
 const app           = document.getElementById('app');
@@ -38,6 +39,10 @@ const mobileMoveBtn = document.getElementById('mobile-moves-btn');
 // ── Renderers ──────────────────────────────────────────────
 const stickCanvas   = document.getElementById('stick-canvas');
 const stickRenderer = new StickCamRenderer(stickCanvas);
+
+const fpvCanvas   = document.getElementById('fpv-canvas');
+const osdCanvas   = document.getElementById('osd-canvas');
+const fpvRenderer = new FpvCamRenderer(fpvCanvas, osdCanvas);
 
 // ── State ──────────────────────────────────────────────────
 let currentMove   = null;
@@ -147,6 +152,9 @@ function loadMove(move) {
   stickRenderer._rightTrail = [];
   stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
 
+  // Reset FPV sim state for fresh start
+  fpvRenderer.resetSim();
+
   // Update info panel
   infoName.textContent     = move.name;
   infoDesc.textContent     = move.description;
@@ -240,6 +248,7 @@ function renderFrame(t) {
   if (!currentMove) return;
   const frame = interpolateFrame(currentMove, t);
   stickRenderer.render(frame);
+  fpvRenderer.render(frame);
   window.dispatchEvent(new CustomEvent('render-frame', { detail: frame }));
   updateScrubber();
 }
@@ -488,6 +497,7 @@ const ro = new ResizeObserver(() => {
     canvas.height = canvas.offsetHeight * devicePixelRatio;
   });
   stickRenderer.resize();
+  fpvRenderer.resize();
   if (currentMove) renderFrame(currentTime);
 });
 

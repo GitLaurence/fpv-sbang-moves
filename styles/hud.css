@@ -1,0 +1,31 @@
+/* ── FPV Panel ─────────────────────────────────────────────── */
+
+/* Fisheye / barrel distortion on the FPV canvas via CSS */
+#fpv-wrap {
+  perspective: 800px;
+}
+
+#fpv-canvas {
+  transform: perspective(900px) scale(1.04);
+  transform-origin: center center;
+}
+
+/* OSD canvas must match the FPV canvas size exactly */
+#osd-canvas {
+  transform: none; /* no barrel — OSD sits flat on top */
+}
+
+/* Throttle surge — vignette tightens via JS-driven class */
+#fpv-wrap.throttle-surge #fpv-canvas {
+  animation: throttle-vignette 0.4s ease-out;
+}
+
+/* Night theme: slight green-tint on the whole FPV panel */
+[data-theme="betaflight"] #fpv-canvas {
+  filter: saturate(0) sepia(1) hue-rotate(80deg) brightness(0.9);
+}
+
+/* Daylight theme: slightly warmer */
+[data-theme="daylight"] #fpv-canvas {
+  filter: saturate(1.1) brightness(1.05);
+}
