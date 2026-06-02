@@ -2,6 +2,11 @@ import { MOVES, LEVELS }       from './moves/move-data.js';
 import { StickCamRenderer }    from './renderers/stick-cam.js';
 import { FpvCamRenderer }      from './renderers/fpv-cam.js';
 import { PlaybackEngine }      from './playback.js';
+import { InfoPanel }           from './ui/info-panel.js';
+import { SidebarFilter }       from './ui/sidebar-filter.js';
+import { ShortcutsOverlay }    from './ui/shortcuts.js';
+import { PhaseTracker }        from './ui/phase-tracker.js';
+import { MobileSheet }         from './ui/mobile-sheet.js';
 
 // ── DOM refs ───────────────────────────────────────────────
 const app           = document.getElementById('app');
@@ -27,12 +32,7 @@ const fpvHeader     = document.getElementById('fpv-header');
 const stickHeader   = document.getElementById('stick-header');
 const fpvPlaceholder    = document.getElementById('fpv-placeholder');
 const stickPlaceholder  = document.getElementById('stick-placeholder');
-const infoPanel     = document.getElementById('move-info');
-const infoName      = document.getElementById('info-name');
-const infoDesc      = document.getElementById('info-desc');
-const infoDots      = document.getElementById('info-dots');
-const infoDuration  = document.getElementById('info-duration');
-const infoTips      = document.getElementById('info-tips');
+const moveInfoEl    = document.getElementById('move-info');
 const resizeHandle  = document.getElementById('resize-handle');
 const mainEl        = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
@@ -45,12 +45,18 @@ const fpvCanvas     = document.getElementById('fpv-canvas');
 const osdCanvas     = document.getElementById('osd-canvas');
 const fpvRenderer   = new FpvCamRenderer(fpvCanvas, osdCanvas);
 
+// ── UI Modules ─────────────────────────────────────────────
+const infoPanel    = new InfoPanel();
+const phaseTracker = new PhaseTracker();
+// SidebarFilter, ShortcutsOverlay, MobileSheet init after sidebar is built (see bottom)
+
 // ── Playback Engine ────────────────────────────────────────
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
   (frame) => {
     stickRenderer.render(frame);
     fpvRenderer.render(frame);
+    phaseTracker.update(frame.t);
     syncScrubber();
   },
   // onEnd — reached the end of a move
@@ -168,23 +174,21 @@ function loadMove(move) {
 
   // Load into engine (seeks to 0 and emits first frame)
   engine.load(move);
+  phaseTracker.load(move);
 
   updatePlayBtn();
 
-  // Info panel
-  infoName.textContent     = move.name;
-  infoDesc.textContent     = move.description;
-  infoDuration.textContent = `${move.durationSec}s`;
-  timeTotal.textContent    = fmtTime(move.durationSec);
-
+  // Info panel — delegated to InfoPanel module
   const levelLabel = LEVELS[move.level]?.label ?? move.level;
-  infoDots.innerHTML = Array.from({ length: 5 }, (_, i) =>
-    `<div class="diff-dot ${i < move.difficulty ? 'filled' : ''}"></div>`
-  ).join('') +
-  `<span style="margin-left:8px;font-family:var(--font-osd);font-size:10px;color:var(--text-secondary)">${levelLabel}</span>`;
+  infoPanel.load(move, levelLabel);
+  timeTotal.textContent = fmtTime(move.durationSec);
 
-  infoTips.innerHTML = move.tips.map(tip => `<span>${tip}</span>`).join('');
-  infoPanel.classList.add('visible');
+  // Auto-scroll active card into view
+  const activeCard = document.querySelector(`.move-card[data-id="${move.id}"]`);
+  activeCard?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Sync mobile sheet active state
+  window._mobileSheet?.markActive(move.id);
 
   // Scrubber ticks
   buildTicks(move);
@@ -262,6 +266,7 @@ btnStep.addEventListener('click', () => {
   engine.setStepMode(on);
   btnStep.classList.toggle('active', on);
   btnStep.setAttribute('aria-pressed', String(on));
+  document.body.classList.toggle('step-mode', on);
 });
 
 // Speed pills
@@ -419,11 +424,7 @@ const ro = new ResizeObserver(() => {
 ro.observe(document.getElementById('fpv-wrap'));
 ro.observe(document.getElementById('stick-wrap'));
 
-// ── Mobile Move Button ─────────────────────────────────────
-mobileMoveBtn.addEventListener('click', () => {
-  const sidebar = document.getElementById('sidebar');
-  sidebar.style.display = sidebar.style.display === 'flex' ? 'none' : 'flex';
-});
+// ── Mobile Move Button (wired by MobileSheet) ─────────────
 
 // ── Intro ──────────────────────────────────────────────────
 function dismissIntro() {
@@ -437,4 +438,13 @@ function dismissIntro() {
 requestAnimationFrame(() => { introBar.style.width = '100%'; });
 setTimeout(dismissIntro, 1400);
 
+// Build sidebar first so filter + sheet can reference its cards
 buildSidebar();
+
+// Init UI modules that depend on sidebar DOM being ready
+new SidebarFilter(document.getElementById('move-list'));
+new ShortcutsOverlay();
+window._mobileSheet = new MobileSheet(id => {
+  const move = MOVES.find(m => m.id === id);
+  if (move) loadMove(move);
+});
