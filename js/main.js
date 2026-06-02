@@ -488,11 +488,12 @@ ro.observe(document.getElementById('stick-wrap'));
 
 // ── Intro ──────────────────────────────────────────────────
 function dismissIntro() {
+  introScreen.style.animation = 'none'; // cancel forwards fill so opacity transition can work
   introScreen.classList.add('hiding');
   app.hidden = false;
   app.style.animation = 'fade-in 0.4s cubic-bezier(0.16,1,0.3,1) both';
   setTimeout(() => introScreen.remove(), 450);
-  loadMove(MOVES[0]);
+  try { loadMove(MOVES[0]); } catch (e) { console.error('loadMove error:', e); }
 }
 
 requestAnimationFrame(() => { introBar.style.width = '100%'; });
