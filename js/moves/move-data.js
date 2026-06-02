@@ -1,175 +1,26 @@
+import splitS      from './split-s.js';
+import powerLoop   from './power-loop.js';
+import mattyFlip   from './matty-flip.js';
+import knifeEdge   from './knife-edge.js';
+import juicySpin   from './juicy-spin.js';
+import trippySpin  from './trippy-spin.js';
+import bowtie      from './bowtie.js';
+import sbang       from './sbang.js';
+
 export const MOVES = [
-  {
-    id: 'split-s',
-    name: 'Split-S',
-    level: 'beginner',
-    difficulty: 2,
-    durationSec: 3.5,
-    description: 'Nag-ro-roll ng inverted tapos nagpu-pull sa pababang half loop. Magaling para sa pagbabago ng direksyon.',
-    tips: [
-      'Unahin ang roll, hindi ang pitch — maging fully inverted muna bago mag-pull',
-      'Magdala ng speed sa entry o magiging mabagal ang exit',
-      'Ang timing ng pull ang magtatakda ng exit altitude — late pull = mas malalim na dive',
-    ],
-    keyframes: [
-      { t: 0.0, throttle: 0.7,  yaw: 0,    pitch: 0,    roll: 0    },
-      { t: 0.5, throttle: 0.7,  yaw: 0,    pitch: 0,    roll: 1.0  },
-      { t: 1.0, throttle: 0.65, yaw: 0,    pitch: 0,    roll: 0    },
-      { t: 1.2, throttle: 0.4,  yaw: 0,    pitch: -1.0, roll: 0    },
-      { t: 3.0, throttle: 0.6,  yaw: 0,    pitch: 0,    roll: 0    },
-    ],
-  },
-  {
-    id: 'power-loop',
-    name: 'Power Loop',
-    level: 'intermediate',
-    difficulty: 3,
-    durationSec: 4.0,
-    description: 'Buong vertical loop sa ibabaw ng isang bagay. Kailangan ng tamang throttle management sa buong loop.',
-    tips: [
-      'Mag-punch ng throttle sa simula para may sapat na speed sa itaas',
-      'Sa tuktok, bahagyang bawasan ang throttle at i-maintain ang pitch',
-      'Huwag mag-over-pull sa labas o mabilis kang mabababa',
-    ],
-    keyframes: [
-      { t: 0.0, throttle: 0.5,  yaw: 0, pitch: 0,    roll: 0 },
-      { t: 0.3, throttle: 1.0,  yaw: 0, pitch: 0,    roll: 0 },
-      { t: 0.8, throttle: 0.9,  yaw: 0, pitch: 1.0,  roll: 0 },
-      { t: 2.0, throttle: 0.5,  yaw: 0, pitch: 1.0,  roll: 0 },
-      { t: 3.0, throttle: 0.7,  yaw: 0, pitch: 1.0,  roll: 0 },
-      { t: 3.8, throttle: 0.6,  yaw: 0, pitch: 0,    roll: 0 },
-    ],
-  },
-  {
-    id: 'matty-flip',
-    name: 'Matty Flip',
-    level: 'intermediate',
-    difficulty: 3,
-    durationSec: 3.0,
-    description: 'Nose-down flip papunta sa inverted, tapos mag-roll pabalik sa upright. Classic na FPV move.',
-    tips: [
-      'Mag-pitch forward nang mabilis at decisively — huwag mag-hesitate',
-      'Kapag inverted ka na, agad na mag-roll ng 180°',
-      'I-time ang throttle para hindi ka masyadong bumaba',
-    ],
-    keyframes: [
-      { t: 0.0, throttle: 0.6,  yaw: 0, pitch: 0,    roll: 0    },
-      { t: 0.4, throttle: 0.5,  yaw: 0, pitch: 1.0,  roll: 0    },
-      { t: 0.9, throttle: 0.4,  yaw: 0, pitch: 0,    roll: 0    },
-      { t: 1.2, throttle: 0.4,  yaw: 0, pitch: 0,    roll: 1.0  },
-      { t: 1.7, throttle: 0.6,  yaw: 0, pitch: 0,    roll: 0    },
-    ],
-  },
-  {
-    id: 'knife-edge',
-    name: 'Knife Edge',
-    level: 'intermediate',
-    difficulty: 3,
-    durationSec: 3.0,
-    description: '90° roll na pinananatili sa axis. Mukhang parang lumilipad ka sa gilid.',
-    tips: [
-      'Mag-roll ng exactly 90° — huwag labis, huwag kulang',
-      'Gamitin ang yaw para mapanatili ang heading habang naka-roll',
-      'Mataas na throttle ang kailangan para manatiling level',
-    ],
-    keyframes: [
-      { t: 0.0, throttle: 0.6,  yaw: 0,    pitch: 0,   roll: 0    },
-      { t: 0.5, throttle: 0.7,  yaw: 0,    pitch: 0,   roll: 0.5  },
-      { t: 1.0, throttle: 0.8,  yaw: 0.3,  pitch: 0,   roll: 0.5  },
-      { t: 2.0, throttle: 0.8,  yaw: 0.3,  pitch: 0,   roll: 0.5  },
-      { t: 2.5, throttle: 0.6,  yaw: 0,    pitch: 0,   roll: 0    },
-    ],
-  },
-  {
-    id: 'juicy-spin',
-    name: 'Juicy Spin',
-    level: 'advanced',
-    difficulty: 4,
-    durationSec: 4.0,
-    description: 'Flat na yaw spin na may tamang throttle management. Kailangan ng mabilis at maayos na pag-spin.',
-    tips: [
-      'I-center ang throttle bago mag-spin para manatiling flat',
-      'Gamitin ang pitch para i-compensate ang drift habang nag-i-spin',
-      'Mas mabilis ang spin, mas maganda — mag-practice ng full yaw deflection',
-    ],
-    keyframes: [
-      { t: 0.0, throttle: 0.55, yaw: 0,    pitch: 0,    roll: 0 },
-      { t: 0.3, throttle: 0.55, yaw: 1.0,  pitch: 0,    roll: 0 },
-      { t: 2.0, throttle: 0.55, yaw: 1.0,  pitch: 0.1,  roll: 0 },
-      { t: 3.5, throttle: 0.55, yaw: 1.0,  pitch: 0,    roll: 0 },
-      { t: 4.0, throttle: 0.55, yaw: 0,    pitch: 0,    roll: 0 },
-    ],
-  },
-  {
-    id: 'trippy-spin',
-    name: 'Trippy Spin',
-    level: 'advanced',
-    difficulty: 4,
-    durationSec: 4.5,
-    description: 'Diagonal na corkscrew roll — sabay na nag-ro-roll at nag-yi-yaw. Medyo nakakalula pero maganda sa footage.',
-    tips: [
-      'Sabay na i-input ang roll at yaw nang pantay',
-      'I-maintain ang throttle para hindi masyadong mag-dive',
-      'Mas mabilis ang inputs, mas tight ang corkscrew',
-    ],
-    keyframes: [
-      { t: 0.0, throttle: 0.6,  yaw: 0,   pitch: 0, roll: 0   },
-      { t: 0.4, throttle: 0.6,  yaw: 0.8, pitch: 0, roll: 1.0 },
-      { t: 2.5, throttle: 0.6,  yaw: 0.8, pitch: 0, roll: 1.0 },
-      { t: 3.8, throttle: 0.6,  yaw: 0.8, pitch: 0, roll: 1.0 },
-      { t: 4.5, throttle: 0.6,  yaw: 0,   pitch: 0, roll: 0   },
-    ],
-  },
-  {
-    id: 'bowtie',
-    name: 'Bowtie',
-    level: 'advanced',
-    difficulty: 4,
-    durationSec: 6.0,
-    description: 'Figure-8 na may inverted na bahagi. Combination ng dalawang Split-S na magkasalungat ang direksyon.',
-    tips: [
-      'Mag-isip ng dalawang Split-S — isa sa kaliwa, isa sa kanan',
-      'I-time ang bawat roll entry para consistent ang shape',
-      'Ang exit ng unang loop ay ang entry ng pangalawa',
-    ],
-    keyframes: [
-      { t: 0.0, throttle: 0.65, yaw: 0,  pitch: 0,    roll: 0    },
-      { t: 0.5, throttle: 0.65, yaw: 0,  pitch: 0,    roll: 1.0  },
-      { t: 1.0, throttle: 0.5,  yaw: 0,  pitch: -1.0, roll: 0    },
-      { t: 2.5, throttle: 0.6,  yaw: 0,  pitch: 0,    roll: 0    },
-      { t: 3.0, throttle: 0.65, yaw: 0,  pitch: 0,    roll: -1.0 },
-      { t: 3.5, throttle: 0.5,  yaw: 0,  pitch: -1.0, roll: 0    },
-      { t: 5.5, throttle: 0.6,  yaw: 0,  pitch: 0,    roll: 0    },
-    ],
-  },
-  {
-    id: 'sbang',
-    name: 'Sbang',
-    level: 'pro',
-    difficulty: 5,
-    durationSec: 3.0,
-    description: 'Inverted yaw spin reversal — ang pinaka-advanced na trick. Mabilis na transition mula inverted papunta sa opposite direction.',
-    tips: [
-      'Kailangan ng high speed sa entry — huwag mag-slow down bago mag-sbang',
-      'Ang yaw reversal ay dapat lightning-fast, hindi gradual',
-      'Mag-practice ng inverted hover muna bago subukan ito',
-    ],
-    keyframes: [
-      { t: 0.0, throttle: 0.7,  yaw: 0,    pitch: 0,   roll: 0    },
-      { t: 0.3, throttle: 0.7,  yaw: 0,    pitch: 0,   roll: 1.0  },
-      { t: 0.6, throttle: 0.3,  yaw: 0,    pitch: 0,   roll: 0    },
-      { t: 0.8, throttle: 0.3,  yaw: 1.0,  pitch: 0,   roll: 0    },
-      { t: 1.5, throttle: 0.3,  yaw: 1.0,  pitch: 0,   roll: 0    },
-      { t: 1.8, throttle: 0.3,  yaw: -1.0, pitch: 0,   roll: 0    },
-      { t: 2.2, throttle: 0.5,  yaw: 0,    pitch: 0,   roll: -1.0 },
-      { t: 2.7, throttle: 0.65, yaw: 0,    pitch: 0,   roll: 0    },
-    ],
-  },
+  splitS,
+  powerLoop,
+  mattyFlip,
+  knifeEdge,
+  juicySpin,
+  trippySpin,
+  bowtie,
+  sbang,
 ];
 
 export const LEVELS = {
   beginner:     { label: 'SIMULA',      labelFull: 'BEGINNER'     },
-  intermediate: { label: 'KATAMTAMAN', labelFull: 'INTERMEDIATE' },
+  intermediate: { label: 'KATAMTAMAN',  labelFull: 'INTERMEDIATE' },
   advanced:     { label: 'MAHIRAP',     labelFull: 'ADVANCED'     },
   pro:          { label: 'PROPESYONAL', labelFull: 'PRO'          },
 };

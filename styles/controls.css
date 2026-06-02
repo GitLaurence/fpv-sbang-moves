@@ -101,6 +101,7 @@
   gap: 6px;
   min-width: 0;
   position: relative;
+  padding-top: 18px; /* room for phase labels above the track */
 }
 
 .scrubber-track-wrap {
@@ -127,6 +128,35 @@
   border-radius: 1px;
   transform: translateX(-50%);
   pointer-events: none;
+}
+
+.scrubber-phase {
+  position: absolute;
+  top: -18px;
+  transform: translateX(-50%);
+  font-family: var(--font-osd);
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity var(--dur-fast) var(--ease-snap);
+}
+
+.scrubber-phase::before {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 4px;
+  background: rgba(0, 245, 212, 0.4);
+}
+
+.scrubber-track-wrap:hover .scrubber-phase {
+  opacity: 1;
 }
 
 #scrubber {

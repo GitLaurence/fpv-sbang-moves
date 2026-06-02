@@ -206,9 +206,11 @@ function loadMove(move) {
   stickWrap.classList.add('canvas-enter');
 }
 
-// ── Scrubber Ticks ─────────────────────────────────────────
+// ── Scrubber Ticks & Phase Labels ─────────────────────────
 function buildTicks(move) {
   scrubberTicks.innerHTML = '';
+
+  // Keyframe ticks
   for (const kf of move.keyframes) {
     const pct  = (kf.t / move.durationSec) * 100;
     const tick = document.createElement('div');
@@ -216,6 +218,19 @@ function buildTicks(move) {
     tick.style.left = `${pct}%`;
     tick.title      = `${kf.t.toFixed(1)}s`;
     scrubberTicks.appendChild(tick);
+  }
+
+  // Phase labels
+  if (move.phases) {
+    for (const phase of move.phases) {
+      const pct   = (phase.t / move.durationSec) * 100;
+      const label = document.createElement('div');
+      label.className  = 'scrubber-phase';
+      label.style.left = `${pct}%`;
+      label.textContent = phase.label;
+      label.title       = `${phase.label} — ${phase.t.toFixed(1)}s`;
+      scrubberTicks.appendChild(label);
+    }
   }
 }
 
