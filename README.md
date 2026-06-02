@@ -1,30 +1,30 @@
 # FPV Freestyle Moves Tutorial App
 
-An interactive web app that teaches FPV freestyle moves using synchronized dual-view playback — a stick cam (RC transmitter input visualization) alongside an FPV camera view.
+Isang interactive web app para matuto ng FPV freestyle moves gamit ang synchronized dual-view playback — may **stick cam** (para makita ang exact na stick inputs sa RC transmitter) at **FPV cam** (simulated na view ng drone habang ginagawa ang move).
 
 ---
 
-## Concept
+## Ano Ang Gagawin Nito
 
-Each tutorial shows two panels side by side:
+Sa bawat tutorial, dalawa ang makikita mo nang sabay-sabay:
 
-- **Stick Cam** — animated RC transmitter sticks showing exact stick inputs in real time
-- **FPV Cam** — a simulated or recorded FPV camera view of the drone executing the move
+- **Stick Cam** — animated na RC transmitter sticks na nagpapakita ng tamang stick inputs in real time
+- **FPV Cam** — simulated na FPV camera view ng drone habang ginagawa ang move
 
-The user can step through moves, slow down playback, and see how stick inputs map to drone behavior.
+Pwede mong pabagalin ang playback, i-step frame by frame, at makita kung paano exactly nagko-connect ang stick inputs sa kung ano ang nangyayari sa drone.
 
 ---
 
 ## Tech Stack
 
-- Pure HTML5, CSS3, JavaScript (ES modules, no frameworks)
-- Canvas API — for rendering stick inputs and FPV camera simulation
-- Web Animations API — for smooth, controllable playback
-- CSS Custom Properties + Grid/Flexbox — for layout and theming
+- Pure HTML5, CSS3, JavaScript (ES modules — walang frameworks)
+- Canvas API — para i-render ang stick inputs at FPV camera simulation
+- Web Animations API — para sa smooth at controllable na playback
+- CSS Custom Properties + Grid/Flexbox — para sa layout at theming
 
 ---
 
-## App Structure
+## Istruktura ng App
 
 ```
 fpv-sbang-moves/
@@ -45,182 +45,182 @@ fpv-sbang-moves/
 │   │   ├── split-s.js      # Split-S move
 │   │   ├── power-loop.js   # Power Loop
 │   │   ├── matty-flip.js   # Matty Flip
-│   │   └── ...             # One file per move
+│   │   └── ...             # Isa pang file per move
 │   ├── renderers/
-│   │   ├── stick-cam.js    # Draws TX sticks on Canvas
-│   │   ├── fpv-cam.js      # Simulates FPV camera view on Canvas
+│   │   ├── stick-cam.js    # Gumuhit ng TX sticks sa Canvas
+│   │   ├── fpv-cam.js      # Nag-si-simulate ng FPV camera view sa Canvas
 │   │   └── effects.js      # Lens distortion, scanlines, noise, prop wash
-│   ├── playback.js         # Timeline engine — drive keyframes at any speed
-│   └── hud.js              # Draws FPV HUD overlays (horizon bar, speed, etc.)
+│   ├── playback.js         # Timeline engine — nagpapatakbo ng keyframes sa kahit anong speed
+│   └── hud.js              # Gumuhit ng FPV HUD overlays (horizon bar, speed, atbp.)
 └── assets/
     ├── fonts/              # Bebas Neue (headings), JetBrains Mono (OSD/HUD)
-    ├── icons/              # SVG icons for UI controls
-    └── sounds/             # Optional: arm beep, motor whine, wind on throttle
+    ├── icons/              # SVG icons para sa UI controls
+    └── sounds/             # Opsyonal: arm beep, motor whine, hangin sa mataas na throttle
 ```
 
 ---
 
 ## Implementation Plan
 
-### Phase 1 — Shell, Tokens & Layout
+### Phase 1 — Shell, Tokens, at Layout
 
-**Goal:** Get the two-panel layout on screen with placeholder canvases and all design tokens in place.
+**Layunin:** Ipakita ang two-panel layout sa screen nang may placeholder canvases at lahat ng design tokens.
 
-1. `tokens.css` — all CSS custom properties (colors, fonts, glow effects, transitions) defined upfront so every subsequent file references them
-2. `index.html` — semantic layout:
-   - Left sidebar: move list (`<nav>`)
-   - Main area: two `<canvas>` elements side by side (stick cam | FPV cam) with a draggable resize handle
-   - Bottom: fixed playback controls bar
-3. `layout.css` — CSS Grid, dark void background, panel borders and inset glows
-4. `sidebar.css` — move card base styles, difficulty bar colors, category headers
-5. `controls.css` — custom-styled range input (scrubber), play/pause circle button, speed pill group
-6. `animations.css` — all `@keyframes` and transition classes (card hover lift, button ripple, panel fade-in)
-7. Verify layout renders at desktop, tablet, and mobile widths with correct token application
+1. `tokens.css` — lahat ng CSS custom properties (colors, fonts, glow effects, transitions) na itatakda agad para ma-reference ng lahat ng susunod na files
+2. `index.html` — semantic na layout:
+   - Kaliwang sidebar: listahan ng moves (`<nav>`)
+   - Main area: dalawang `<canvas>` na magkatabi (stick cam | FPV cam) na may draggable resize handle sa pagitan
+   - Ibaba: fixed na playback controls bar
+3. `layout.css` — CSS Grid, madilim na background, panel borders, at inset na glow
+4. `sidebar.css` — base styles ng move cards, kulay ng difficulty bar, category headers
+5. `controls.css` — custom-styled na range input (scrubber), play/pause na bilog na button, speed pill group
+6. `animations.css` — lahat ng `@keyframes` at transition classes (card hover lift, button ripple, panel fade-in)
+7. I-verify na nagre-render nang tama ang layout sa desktop, tablet, at mobile
 
 ---
 
 ### Phase 2 — Stick Cam Renderer
 
-**Goal:** Draw RC transmitter sticks that animate based on keyframe data.
+**Layunin:** Gumuhit ng RC transmitter sticks na nag-a-animate base sa keyframe data.
 
-**Stick cam canvas elements:**
-- Two circular gimbals (left = throttle/yaw, right = pitch/roll)
-- Center dot per gimbal showing stick position
-- Axes lines and outer circle ring
-- Labels: T, Y, P, R
+**Mga elementi sa stick cam canvas:**
+- Dalawang bilog na gimbal (kaliwa = throttle/yaw, kanan = pitch/roll)
+- Isang dot sa bawat gimbal para ipakita ang posisyon ng stick
+- Linya ng axes at panlabas na bilog na singsing
+- Mga label: T, Y, P, R
 
-**Data format for a single frame:**
+**Format ng data para sa isang frame:**
 ```js
 {
-  t: 0.0,         // time in seconds
-  throttle: 0.5,  // -1 to 1 (left stick vertical)
-  yaw: 0.0,       // -1 to 1 (left stick horizontal)
-  pitch: 0.0,     // -1 to 1 (right stick vertical)
-  roll: 0.0       // -1 to 1 (right stick horizontal)
+  t: 0.0,         // oras sa seconds
+  throttle: 0.5,  // -1 hanggang 1 (kaliwang stick, pataas-pababa)
+  yaw: 0.0,       // -1 hanggang 1 (kaliwang stick, pakanan-pakaliwa)
+  pitch: 0.0,     // -1 hanggang 1 (kanang stick, pataas-pababa)
+  roll: 0.0       // -1 hanggang 1 (kanang stick, pakanan-pakaliwa)
 }
 ```
 
-**`stick-cam.js` responsibilities:**
-- `StickCamRenderer(canvas)` — sets up canvas context
-- `render(frame)` — draws both sticks for a given frame object
-- Smooth interpolation between keyframes via `lerp()`
+**Responsibilidad ng `stick-cam.js`:**
+- `StickCamRenderer(canvas)` — mag-set up ng canvas context
+- `render(frame)` — gumuhit ng dalawang sticks para sa isang frame object
+- Maayos na interpolation sa pagitan ng keyframes gamit ang `lerp()`
 
 ---
 
 ### Phase 3 — FPV Camera Renderer
 
-**Goal:** Simulate the look of an FPV camera based on drone attitude derived from stick inputs.
+**Layunin:** I-simulate ang hitsura ng FPV camera base sa attitude ng drone mula sa stick inputs.
 
-**Simulated elements:**
-- Sky/ground split — tilts with roll, pitches with pitch
+**Mga sine-simulate na elemento:**
+- Sky/ground na hiwalay — nagti-tilt sa roll, nagshi-shift sa pitch
 - Horizon line
-- Motion blur effect (CSS filter or canvas alpha trails) proportional to speed
-- Optional: grid overlay, prop wash shimmer effect
+- Motion blur effect (CSS filter o canvas alpha trails) na proporsyonal sa speed
+- Opsyonal: grid overlay, prop wash shimmer
 
-**`fpv-cam.js` responsibilities:**
-- `FpvCamRenderer(canvas)` — sets up canvas
-- `render(state)` — draws frame given `{ roll, pitch, yaw, throttle, speed }`
-- Sky gradient (bright daytime or night mode)
-- Ground gradient (green/brown)
-- Artificial horizon line with roll/pitch transformation
-- HUD overlay pass (delegates to `hud.js`)
+**Responsibilidad ng `fpv-cam.js`:**
+- `FpvCamRenderer(canvas)` — mag-set up ng canvas
+- `render(state)` — gumuhit ng frame gamit ang `{ roll, pitch, yaw, throttle, speed }`
+- Sky gradient (maliwanag na araw o gabi)
+- Ground gradient (berde/kayumanggi)
+- Artificial horizon line na may roll/pitch transformation
+- HUD overlay pass (ipinapasa kay `hud.js`)
 
 **`hud.js`:**
-- Battery percentage (simulated drain over move duration)
+- Porsyento ng baterya (simulated na pagbaba habang tumatagal ang move)
 - Video timer
-- Speed readout (simulated m/s)
+- Speed readout (simulated na m/s)
 - RSSI bars
-- OSD-style monospace font, semi-transparent
+- OSD-style na monospace font, semi-transparent
 
 ---
 
-### Phase 4 — Move Data & Keyframe System
+### Phase 4 — Move Data at Keyframe System
 
-**Goal:** Define moves as keyframe arrays and interpolate between them.
+**Layunin:** I-define ang mga moves bilang keyframe arrays at mag-interpolate sa pagitan nila.
 
-**Move definition:**
+**Halimbawa ng move definition:**
 ```js
 export const splitS = {
   id: 'split-s',
   name: 'Split-S',
   difficulty: 2,           // 1–5
   durationSec: 3.5,
-  description: 'Rolls inverted then pulls through a half loop downward.',
+  description: 'Nag-ro-roll ng inverted tapos nagpu-pull sa pababang half loop.',
   tips: [
-    'Lead with roll, not pitch',
-    'Carry speed into the move',
-    'Pull timing determines exit altitude'
+    'Unahin ang roll, hindi ang pitch — maging fully inverted muna',
+    'Magdala ng speed sa entry o magiging mabagal ang exit',
+    'Ang timing ng pull ang magtatakda ng altitude pagkatapos ng move'
   ],
   keyframes: [
     { t: 0.0, throttle: 0.7, yaw: 0, pitch: 0,    roll: 0    },
     { t: 0.5, throttle: 0.7, yaw: 0, pitch: 0,    roll: 1.0  }, // full roll input
-    { t: 1.0, throttle: 0.7, yaw: 0, pitch: 0,    roll: 0    }, // inverted
-    { t: 1.2, throttle: 0.4, yaw: 0, pitch: -1.0, roll: 0    }, // pull
-    { t: 3.0, throttle: 0.6, yaw: 0, pitch: 0,    roll: 0    }, // exit
+    { t: 1.0, throttle: 0.7, yaw: 0, pitch: 0,    roll: 0    }, // inverted na
+    { t: 1.2, throttle: 0.4, yaw: 0, pitch: -1.0, roll: 0    }, // mag-pull
+    { t: 3.0, throttle: 0.6, yaw: 0, pitch: 0,    roll: 0    }, // labas na
   ]
 };
 ```
 
 **`playback.js`:**
-- `PlaybackEngine(moveData, onFrame)` — drives the timeline
+- `PlaybackEngine(moveData, onFrame)` — nagpapatakbo ng timeline
 - `play()`, `pause()`, `seek(t)`, `setSpeed(multiplier)`
-- Uses `requestAnimationFrame` — wall-clock delta times scaled by speed multiplier
-- Calls `onFrame(interpolatedFrame)` each tick
-- Interpolates between surrounding keyframes using linear (or cubic) interpolation
+- Gumagamit ng `requestAnimationFrame` — ang delta times ay naka-scale ayon sa speed multiplier
+- Tinatawag ang `onFrame(interpolatedFrame)` sa bawat tick
+- Nag-i-interpolate sa pagitan ng mga keyframes gamit ang linear o cubic interpolation
 
 ---
 
 ### Phase 5 — Move Library
 
-Implement these moves as keyframe data files (one per move):
+I-implement ang mga moves na ito bilang keyframe data files (isa bawat move):
 
-| Move | Difficulty | Description |
+| Move | Difficulty | Paliwanag |
 |---|---|---|
-| Split-S | ★★☆☆☆ | Roll inverted, pull half loop |
-| Power Loop | ★★★☆☆ | Full vertical loop over an obstacle |
-| Matty Flip | ★★★☆☆ | Nose-down flip to inverted, roll upright |
-| Juicy Spin | ★★★★☆ | Flat yaw spin with throttle management |
-| Knife Edge | ★★★☆☆ | 90° roll sustained on axis |
-| Trippy Spin | ★★★★☆ | Diagonal corkscrewing roll |
-| Bowtie | ★★★★☆ | Figure-8 with inverted segments |
-| Sbang | ★★★★★ | Inverted yaw spin reversal |
+| Split-S | ★★☆☆☆ | Mag-roll ng inverted, mag-pull ng half loop pababa |
+| Power Loop | ★★★☆☆ | Buong vertical loop sa ibabaw ng isang bagay |
+| Matty Flip | ★★★☆☆ | Nose-down flip papunta sa inverted, mag-roll pabalik |
+| Juicy Spin | ★★★★☆ | Flat na yaw spin na may tamang throttle management |
+| Knife Edge | ★★★☆☆ | 90° roll na pinananatili sa axis |
+| Trippy Spin | ★★★★☆ | Diagonal na corkscrew roll |
+| Bowtie | ★★★★☆ | Figure-8 na may inverted na bahagi |
+| Sbang | ★★★★★ | Inverted yaw spin reversal — ang pinaka-advanced |
 
-Each move gets a dedicated file in `js/moves/` with its keyframe data exported.
+Bawat move ay may sariling file sa `js/moves/` na naka-export ang keyframe data.
 
 ---
 
-### Phase 6 — UI & Navigation
+### Phase 6 — UI at Navigation
 
-**Goal:** Polish the sidebar, playback bar, and move info panel.
+**Layunin:** Pagandahin ang sidebar, playback bar, at move info panel.
 
-- Sidebar lists all moves with difficulty stars and click-to-load
-- Active move highlighted
-- Move info panel below canvases: name, difficulty, description, tips list
+- Ang sidebar ay nagtatala ng lahat ng moves na may difficulty stars at click-to-load
+- Naka-highlight ang aktibong move
+- Move info panel sa ilalim ng canvases: pangalan, difficulty, paliwanag, listahan ng tips
 - Playback bar: scrubber (input range), play/pause toggle, speed buttons
 - Keyboard shortcuts: `Space` = play/pause, `←`/`→` = step frame, `[`/`]` = speed
 
 ---
 
-### Phase 7 — Visual Effects & Atmosphere
+### Phase 7 — Visual Effects at Atmosphere
 
-**Goal:** Layer in the cinematic FPV effects that make the sim feel real.
+**Layunin:** Dagdag ng cinematic FPV effects para maging mas totoo ang hitsura.
 
-- **Vignette + fisheye** — permanent dark oval over FPV canvas, CSS `perspective` barrel distortion
-- **Motion blur** — persistence trail on high-speed frames (prev frame at 20% alpha)
-- **Chromatic aberration** — double-draw with red/cyan offset on max-deflection moments
-- **Prop wash shimmer** — corner radial flicker on rapid pitch changes
-- **Scanline + noise overlay** — CRT scanlines at 4%, random pixel noise re-randomized every 8 frames
-- **OSD simulation** — battery drain, speed from throttle, altitude from pitch, blinking REC dot
+- **Vignette + fisheye** — permanenteng madilim na oval sa FPV canvas, CSS `perspective` barrel distortion
+- **Motion blur** — persistence trail sa mabilis na frames (nakaraang frame sa 20% alpha)
+- **Chromatic aberration** — double-draw na may red/cyan offset sa mga max-deflection na sandali
+- **Prop wash shimmer** — corner radial na pagkilos sa mabilis na pitch changes
+- **Scanline + noise overlay** — CRT scanlines sa 4%, random pixel noise na nagbabago bawat 8 frames
+- **OSD simulation** — pagbaba ng baterya, speed mula sa throttle, altitude mula sa pitch, kumukurap na REC dot
 
-### Phase 8 — Polish & Extras
+### Phase 8 — Polish at Mga Dagdag na Feature
 
-- **Step mode** — advance frame by frame with `⚡` toggle, `←/→` keys
-- **Loop mode** — `↺` toggle, scrubber shows loop region shading
-- **Ghost trail** — stick cam draws faded overlay of previous playthrough for comparison
-- **Responsive layout** — icon-rail sidebar at tablet, bottom-sheet at mobile, swipe-scrub on FPV panel
-- **Theme switcher** — Night (default), Daylight, Betaflight OSD modes via CSS class on `<html>`
-- **Intro screen** — animated logo fade-in with Split-S looping in background canvases on first load
-- **Sound layer (optional)** — throttle-proportional motor whine via Web Audio API oscillator, wind on high speed
+- **Step mode** — mag-advance ng frame by frame gamit ang `⚡` toggle at `←/→` keys
+- **Loop mode** — `↺` toggle, nagpapakita ng loop region shading sa scrubber
+- **Ghost trail** — ang stick cam ay nagdradrawing ng mabaw na overlay ng nakaraang playthrough para mapaghambing
+- **Responsive layout** — icon-rail sidebar sa tablet, bottom sheet sa mobile, swipe-scrub sa FPV panel
+- **Theme switcher** — Night (default), Daylight, Betaflight OSD modes sa pamamagitan ng CSS class sa `<html>`
+- **Intro screen** — animated na logo fade-in na may Split-S na naka-loop sa background habang naglo-load
+- **Sound layer (opsyonal)** — throttle-proportional na motor whine gamit ang Web Audio API oscillator, hangin sa mataas na speed
 
 ---
 
@@ -228,7 +228,7 @@ Each move gets a dedicated file in `js/moves/` with its keyframe data exported.
 
 ### Design Language
 
-The visual identity borrows from two FPV-native references: **Betaflight OSD** (raw, monospace, functional) and **modern FPV brand aesthetics** (high contrast, neon accents, cinematic dark backgrounds). The result feels like a tool a real pilot would trust, not a toy.
+Ang visual identity ay gumuhit mula sa dalawang bagay na pamilyar sa lahat ng FPV pilot: ang **Betaflight OSD** (raw, monospace, functional) at ang **modernong FPV brand aesthetic** (mataas na contrast, neon accents, cinematic na madilim na background). Ang resulta ay mukhang isang tool na talagang mapagkakatiwalaan ng tunay na pilot — hindi laruan.
 
 ---
 
@@ -236,25 +236,25 @@ The visual identity borrows from two FPV-native references: **Betaflight OSD** (
 
 ```css
 :root {
-  /* Background stack — deep blacks with blue-tinted depth */
-  --bg-void:       #050608;   /* outermost background */
+  /* Background stack — malalim na itim na may asul na tint */
+  --bg-void:       #050608;   /* pinaka-labas na background */
   --bg-panel:      #0b0d12;   /* canvas/panel backgrounds */
   --bg-surface:    #12151d;   /* cards, sidebar */
   --bg-raised:     #1a1e2a;   /* hover states, active items */
   --bg-overlay:    rgba(5, 6, 8, 0.85); /* modal/tooltip scrim */
 
   /* Neon accent palette */
-  --accent-primary:  #00f5d4;  /* teal — main interactive color */
-  --accent-secondary:#f72585;  /* hot pink — warnings, active states */
-  --accent-throttle: #f7b731;  /* amber — throttle channel color */
-  --accent-yaw:      #a855f7;  /* purple — yaw channel */
-  --accent-pitch:    #3b82f6;  /* blue — pitch channel */
-  --accent-roll:     #00f5d4;  /* teal — roll channel */
+  --accent-primary:  #00f5d4;  /* teal — pangunahing interactive na kulay */
+  --accent-secondary:#f72585;  /* hot pink — para sa warnings at active states */
+  --accent-throttle: #f7b731;  /* amber — kulay ng throttle channel */
+  --accent-yaw:      #a855f7;  /* purple — kulay ng yaw channel */
+  --accent-pitch:    #3b82f6;  /* asul — kulay ng pitch channel */
+  --accent-roll:     #00f5d4;  /* teal — kulay ng roll channel */
 
   /* Text */
   --text-primary:    #e8eaf0;
   --text-secondary:  #6b7280;
-  --text-osd:        #ffffff;  /* pure white for HUD/OSD overlays */
+  --text-osd:        #ffffff;  /* puro puti para sa HUD/OSD overlays */
 
   /* Typography */
   --font-display:  'Bebas Neue', 'Arial Narrow', sans-serif;
@@ -286,293 +286,312 @@ The visual identity borrows from two FPV-native references: **Betaflight OSD** (
 
 ---
 
-### Layout & Panels
+### Layout at Panels
 
 **Overall shell:**
-- Full-viewport dark layout (`--bg-void`), no scrollbars visible
-- CSS Grid: `220px sidebar | 1fr FPV cam | 1fr stick cam` (resizable via drag handle)
-- Bottom playback bar fixed at `64px` height
-- Subtle `1px` inner glow borders between all panels using `box-shadow` inset
+- Full-viewport na madilim na layout (`--bg-void`), walang nakikitang scrollbars
+- CSS Grid: `220px sidebar | 1fr FPV cam | 1fr stick cam` (pwedeng i-resize sa pamamagitan ng drag handle)
+- Bottom playback bar na naka-fix sa `64px` taas
+- Banayad na `1px` inner glow borders sa pagitan ng lahat ng panels gamit ang `box-shadow` inset
 
 **Panel headers:**
-- Uppercase label in `--font-display`, `11px`, letter-spacing `0.15em`, `--text-secondary`
-- A `2px` teal left-border accent marks the active panel on focus
-- Icon badge (camera icon / gamepad icon) in top-right corner of each panel
+- Uppercase na label sa `--font-display`, `11px`, letter-spacing `0.15em`, `--text-secondary`
+- Isang `2px` teal na left-border accent ang nagtatanda ng aktibong panel
+- Icon badge (camera icon / gamepad icon) sa kanang sulok sa itaas ng bawat panel
 
-**Drag-to-resize handle between panels:**
-- `4px` vertical divider, teal on hover with glow
-- Cursor changes to `col-resize`
-- Snap-back animation if dragged to extreme
+**Drag-to-resize handle sa pagitan ng panels:**
+- `4px` na patayong divider, nagiging teal sa hover na may glow
+- Nagbabago ang cursor sa `col-resize`
+- May snap-back animation kapag napunta sa extreme
 
 ---
 
 ### Sidebar — Move Browser
 
-**Structure:**
+**Istruktura:**
 ```
 FREESTYLE MOVES                    [filter icon]
 ─────────────────────────────────────────────
-BEGINNER
+SIMULA (BEGINNER)
   ┌─────────────────────────────────────────┐
   │ Split-S            ●●○○○  3.5s          │
-  │ "Roll inverted, pull half loop"         │
+  │ "Mag-roll ng inverted, mag-pull pababa" │
   └─────────────────────────────────────────┘
 
-INTERMEDIATE
+KATAMTAMAN (INTERMEDIATE)
   [Power Loop card]
   [Matty Flip card]
   [Knife Edge card]
 
-ADVANCED
+MAHIRAP (ADVANCED)
   [Juicy Spin card]
   [Trippy Spin card]
   [Bowtie card]
 
-PRO
+PROPESYONAL (PRO)
   [Sbang card]
 ```
 
-**Move card design:**
+**Disenyo ng move card:**
 - `--bg-surface` background, `--border-panel` border, `--radius-md`
-- Left edge: `3px` vertical bar colored by difficulty (green → yellow → orange → red)
-- Move name in `--font-display` at `18px`
-- Difficulty shown as 5 filled/empty dots with channel colors
-- Duration badge: pill shape, `--bg-raised`, teal text
-- Short description in `--font-ui` at `11px`, `--text-secondary`, single line truncated
-- **Hover:** card lifts with `translateY(-2px)`, border brightens, left bar glows
-- **Active:** `--bg-raised` fill, teal left bar, glow-subtle box-shadow, `>` arrow appears
+- Kaliwang gilid: `3px` na patayong bar na may kulay ayon sa difficulty (berde → dilaw → orange → pula)
+- Pangalan ng move sa `--font-display` na `18px`
+- Difficulty na ipinapakita bilang 5 puno/walang laman na tuldok na may kulay ng channel
+- Duration badge: hugis pilula, `--bg-raised`, teal na teksto
+- Maigsi na paliwanag sa `--font-ui` na `11px`, `--text-secondary`, isang linya lang na may truncation
+- **Hover:** ang card ay tumaas ng `translateY(-2px)`, nagiging maliwanag ang border, nagliliwanag ang kaliwang bar
+- **Active:** `--bg-raised` fill, teal na kaliwang bar, glow-subtle box-shadow, lumalabas ang `>` arrow
 
 **Category headers:**
-- Uppercase, `--font-display`, `11px`, `--text-secondary` with `0.2em` letter-spacing
-- `1px` horizontal rule after the label
+- Uppercase, `--font-display`, `11px`, `--text-secondary` na may `0.2em` letter-spacing
+- `1px` na pahalang na linya pagkatapos ng label
 
 ---
 
 ### Stick Cam Panel
 
-**Canvas rendering details:**
+**Detalye ng canvas rendering:**
 
-Each gimbal is drawn as layered circles:
+Bawat gimbal ay ginuguhit bilang layered circles:
 ```
 Outer ring:   stroke, rgba(255,255,255,0.08), 2px
-Gate ring:    stroke, rgba(0,245,212,0.15), 1px  ← subtle inner boundary
-Center cross: rgba(255,255,255,0.12), 1px lines
-Stick dot:    filled circle, white core + colored glow matching channel
-Trail:        last N positions drawn with decreasing alpha (motion trail)
+Gate ring:    stroke, rgba(0,245,212,0.15), 1px  ← banayad na panloob na hangganan
+Center cross: rgba(255,255,255,0.12), 1px na linya
+Stick dot:    puno na bilog, puting core + colored glow na katugma ng channel
+Trail:        huling N na posisyon na ginuhit na may bumababang alpha (motion trail)
 ```
 
-**Per-channel color coding** (matches `tokens.css`):
-- Throttle axis: amber `#f7b731` glow when moving
+**Per-channel color coding** (katugma ng `tokens.css`):
+- Throttle axis: amber `#f7b731` glow kapag gumagalaw
 - Yaw axis: purple `#a855f7` glow
-- Pitch axis: blue `#3b82f6` glow  
+- Pitch axis: asul `#3b82f6` glow
 - Roll axis: teal `#00f5d4` glow
 
-**Stick dot states:**
-- Idle (centered): small white dot, no glow
-- Moving: dot expands slightly, channel-color glow pulses
-- Full deflection: dot hits gate ring, ring flashes briefly
+**Mga estado ng stick dot:**
+- Idle (nakasentro): maliit na puting tuldok, walang glow
+- Gumagalaw: bahagyang lumalaki ang tuldok, nagpu-pulse ang channel-color glow
+- Full deflection: tinatamaan ng tuldok ang gate ring, bahagyang kumikislap ang singsing
 
-**Below each gimbal — axis meters:**
-Four thin horizontal bars (one per channel) showing current value from -1 to +1 with colored fill. Labels on left (T / Y / P / R), value readout on right (`+0.84`).
+**Sa ilalim ng bawat gimbal — axis meters:**
+Apat na manipis na pahalang na bar (isa bawat channel) na nagpapakita ng kasalukuyang halaga mula -1 hanggang +1 na may colored fill. Mga label sa kaliwa (T / Y / P / R), value readout sa kanan (`+0.84`).
 
 **Panel chrome:**
-- `STICK CAM` label top-left
-- Controller icon top-right (SVG)
-- Mode indicator: `MODE 2` badge (or MODE 1 — switchable in settings)
-- Scanline overlay (CSS `repeating-linear-gradient`) at 3% opacity for CRT feel
+- `STICK CAM` na label sa kaliwang itaas
+- Controller icon sa kanang itaas (SVG)
+- Mode indicator: `MODE 2` badge (o MODE 1 — mababago sa settings)
+- Scanline overlay (CSS `repeating-linear-gradient`) sa 3% opacity para sa CRT na pakiramdam
 
 ---
 
 ### FPV Camera Panel
 
-**Sky/ground scene:**
+**Sky/ground na eksena:**
 
 ```
 Sky gradient:    linear-gradient(to bottom, #0a1628 0%, #1a3a5c 60%, #2d6a8f 100%)
 Ground gradient: linear-gradient(to bottom, #1a2e0a 0%, #0d1a06 100%)
 ```
 
-The entire scene canvas rotates with `roll` and shifts vertically with `pitch` — the horizon line stays fixed in world space while the camera view rotates around it.
+Ang buong eksena ng canvas ay umiinog kasabay ng `roll` at gumagalaw pataas-pababa kasabay ng `pitch` — ang horizon line ay nananatiling nakaayos sa mundo habang ang camera view ay umiikot sa paligid nito.
 
 **Atmospheric effects (Canvas 2D):**
-- **Motion blur** — on high throttle/speed, draw previous frame at 20% alpha before redrawing (persistence effect)
-- **Prop wash shimmer** — on rapid pitch changes, radial gradient flicker at canvas corners
-- **Vignette** — permanent dark oval vignette drawn over the scene (wide-angle lens feel)
-- **Chromatic aberration** — on max-deflection moves, draw scene twice offset 2px with red/cyan channel offset at low alpha
-- **Fisheye distortion** — CSS `perspective` transform on the canvas element, slight barrel distortion via SVG `feTurbulence` filter
+- **Motion blur** — sa mataas na throttle/speed, iguhit ang nakaraang frame sa 20% alpha bago muling iguhit (persistence effect)
+- **Prop wash shimmer** — sa mabilis na pitch changes, radial gradient flicker sa mga sulok ng canvas
+- **Vignette** — permanenteng madilim na oval na vignette na ginuhit sa ibabaw ng eksena (para sa wide-angle lens na pakiramdam)
+- **Chromatic aberration** — sa max-deflection na moves, iguhit ang eksena nang dalawang beses na offset ng 2px na may red/cyan channel offset sa mababang alpha
+- **Fisheye distortion** — CSS `perspective` transform sa canvas element, bahagyang barrel distortion sa pamamagitan ng SVG `feTurbulence` filter
 
 **Scanline / noise overlay:**
-- Semi-transparent `repeating-linear-gradient` scanlines (2px on/2px off at 4% opacity)
-- Canvas noise layer: random pixel dots at 2% opacity, re-randomized every 8 frames
+- Semi-transparent na `repeating-linear-gradient` scanlines (2px on/2px off sa 4% opacity)
+- Canvas noise layer: random pixel dots sa 2% opacity, binabago bawat 8 frames
 
 **Artificial horizon (AHH) line:**
-- `3px` white line spanning full width, transforms with roll angle
-- `1px` teal center marker at zero pitch
-- Short ladder marks at ±10°, ±20°, ±30°, ±45°, ±60° pitch
+- `3px` na puting linya na sumasaklaw ng buong lapad, nagbabago kasabay ng roll angle
+- `1px` teal center marker sa zero pitch
+- Maiikling ladder marks sa ±10°, ±20°, ±30°, ±45°, ±60° pitch
 
 ---
 
 ### FPV HUD / OSD Layer
 
-Drawn on a separate transparent canvas layered above the FPV scene. Font: `--font-osd`, all text white, semi-transparent backgrounds behind text for legibility.
+Ginuguhit sa hiwalay na transparent canvas na nakapatong sa ibabaw ng FPV scene. Font: `--font-osd`, lahat ng teksto ay puti, may semi-transparent na background sa likod ng teksto para madaling mabasa.
 
-**OSD element layout:**
+**Layout ng OSD elements:**
 ```
 ┌──────────────────────────────────────────────────────┐
-│ 87%  ████████░░  4S            00:03:42   REC ●      │  ← top bar
+│ 87%  ████████░░  4S            00:03:42   REC ●      │  ← itaas na bar
 │                                                      │
 │                                                      │
 │            ────────[  ]────────                      │  ← artificial horizon
 │                                                      │
 │                                                      │
-│ 124 km/h                           RSSI ████░  -72  │  ← bottom bar
+│ 124 km/h                           RSSI ████░  -72  │  ← ibabang bar
 │ ↑ 18m                              GPS  12sat        │
 └──────────────────────────────────────────────────────┘
 ```
 
-**Individual OSD elements:**
+**Mga OSD element:**
 
-| Element | Detail |
+| Element | Detalye |
 |---|---|
-| Battery % + bar | Colored green → yellow → red as it drains. Bar is 10 segments. |
-| Cell count badge | `4S` in a rounded pill, amber tint |
-| Timer | `MM:SS:FF` format, increments during playback |
-| REC indicator | Red dot + `REC` text, blinks every 1s |
-| Speed | Large readout, `km/h` or `mph` toggle |
-| Altitude | Signed meters, up-arrow icon |
-| RSSI bar | 5-segment bar, colored by signal strength |
-| dBm readout | `-72` style, secondary text |
-| GPS sats | Satellite icon + count |
-| Crosshair | 4-point minimal crosshair at dead center, 30% opacity |
+| Battery % + bar | Nagiging berde → dilaw → pula habang naubos. Ang bar ay may 10 segments. |
+| Cell count badge | `4S` sa rounded pill, amber tint |
+| Timer | `MM:SS:FF` format, dumadami habang nag-a-play |
+| REC indicator | Pulang tuldok + `REC` na teksto, kumikislap bawat 1 segundo |
+| Speed | Malaking readout, toggle sa `km/h` o `mph` |
+| Altitude | Signed meters, may up-arrow icon |
+| RSSI bar | 5-segment bar, may kulay ayon sa kalidad ng signal |
+| dBm readout | `-72` style, secondary na teksto |
+| GPS sats | Satellite icon + bilang |
+| Crosshair | 4-point na minimal crosshair sa gitna, 30% opacity |
 
-**All OSD values are simulated** — derived from the keyframe data (throttle → speed, duration → battery drain, pitch inputs → altitude change).
+**Lahat ng OSD values ay simulated** — kinukuha mula sa keyframe data (throttle → speed, tagal → pagbaba ng baterya, pitch inputs → pagbabago ng altitude).
 
 ---
 
 ### Playback Controls Bar
 
-**Layout (left to right):**
+**Layout (mula kaliwa pakanan):**
 ```
 [⏮]  [⏪]  [▶/⏸]  [⏩]  [⏭]   ══════●══════════════════   00:01.4 / 00:03.5   [0.25×] [0.5×] [1×] [2×]   [↺] [⚡]
 ```
 
-**Design details:**
+**Mga detalye ng disenyo:**
 
-- Bar background: `--bg-panel` with `1px` top border at `rgba(255,255,255,0.06)`
-- Play/pause button: `48px` circle, `--accent-primary` fill, icon inside — pulses with a 1-ring ripple animation on press
-- Step buttons (⏪⏩): smaller `36px`, border style, teal on hover
+- Bar background: `--bg-panel` na may `1px` itaas na border sa `rgba(255,255,255,0.06)`
+- Play/pause button: `48px` bilog, `--accent-primary` fill, icon sa loob — nagpu-pulse ng 1-ring ripple animation kapag pinindot
+- Step buttons (⏪⏩): mas maliit na `36px`, border style, teal sa hover
 - Skip-to-start/end (⏮⏭): `28px`, ghost style
 - **Scrubber:**
-  - Custom `<input type="range">` fully styled
-  - Track: `--bg-raised`, `4px` tall, rounded
-  - Fill left of thumb: teal gradient
-  - Thumb: `14px` white circle, teal glow on focus/drag
-  - Hover over track: tooltip showing time at cursor position
-  - Keyframe tick marks on the track (one per keyframe)
-- Time display: `--font-osd`, `--text-primary` current time / `--text-secondary` total time
-- Speed buttons: pill group (`0.25×` `0.5×` `1×` `2×`), active state has teal fill + glow
-- Loop toggle `↺`: glows teal when active, rotates 360° on click
-- Flash/step mode toggle `⚡`: activates frame-by-frame stepping
+  - Custom na `<input type="range">` na fully styled
+  - Track: `--bg-raised`, `4px` taas, bilugan
+  - Fill sa kaliwa ng thumb: teal gradient
+  - Thumb: `14px` puting bilog, teal glow sa focus/drag
+  - Hover sa track: tooltip na nagpapakita ng oras sa cursor position
+  - Keyframe tick marks sa track (isa bawat keyframe)
+- Time display: `--font-osd`, `--text-primary` kasalukuyang oras / `--text-secondary` kabuuang oras
+- Speed buttons: pill group (`0.25×` `0.5×` `1×` `2×`), ang aktibong state ay may teal fill + glow
+- Loop toggle `↺`: nagiliwanag ng teal kapag aktibo, umiikot ng 360° kapag naka-click
+- Flash/step mode toggle `⚡`: nag-a-activate ng frame-by-frame stepping
 
 ---
 
 ### Move Info Panel
 
-Displayed below the dual canvases, above the playback bar. Slides up from bottom when a move is selected.
+Ipinapakita sa ilalim ng dalawang canvases, sa itaas ng playback bar. Nagsi-slide pataas mula sa ibaba kapag pumili ng move.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  SPLIT-S                              ●●○○○  BEGINNER   3.5s        │
+│  SPLIT-S                              ●●○○○  SIMULA   3.5s          │
 │                                                                     │
-│  Rolls inverted then pulls through a half loop downward. Great      │
-│  for reversing direction while losing minimal altitude.             │
+│  Nag-ro-roll ng inverted tapos nagpu-pull sa pababang half loop.    │
+│  Magaling para sa pagbabago ng direksyon nang hindi masyadong       │
+│  nababawasan ang altitude.                                          │
 │                                                                     │
-│  TIPS                                                               │
-│  ›  Lead with roll input, not pitch — get fully inverted first      │
-│  ›  Carry speed into the entry or the exit will be sluggish         │
-│  ›  Pull timing determines exit altitude — late pull = deeper dive  │
+│  MGA TIPS                                                           │
+│  ›  Unahin ang roll, hindi ang pitch — maging fully inverted muna   │
+│  ›  Magdala ng speed sa entry o magiging mabagal ang exit           │
+│  ›  Ang timing ng pull ang magtatakda ng exit altitude              │
 │                                                                     │
-│  CHANNELS USED    [ROLL ████]  [PITCH ████]  [THROTTLE ░░▓▓]       │
+│  CHANNELS NA GINAGAMIT   [ROLL ████]  [PITCH ████]  [THROTTLE ░░▓▓] │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Channel usage summary:** mini horizontal bar per channel showing average absolute deflection during the move. Lets pilots instantly see which sticks dominate the move.
+**Channel usage summary:** Mini horizontal bar bawat channel na nagpapakita ng average absolute deflection sa buong move. Agad na makikita ng pilot kung aling mga stick ang pangunahing ginagamit sa move.
 
 ---
 
-### Micro-interactions & Animations
+### Micro-interactions at Animations
 
 | Trigger | Animation |
 |---|---|
-| Select a move | Sidebar card snaps active, canvases fade+scale in (`opacity 0→1`, `scale 0.97→1`), info panel slides up |
-| Play button press | Button compresses (`scale 0.9`) then bounces back, ripple expands outward |
-| Scrubber drag | FPV cam and stick cam update live, OSD values update in real time |
-| Speed change | Active speed pill pops with `scale 1.15` bounce, playback rate changes smoothly |
-| Reach end of move | Scrubber thumb pulses once, auto-pauses, play button glows briefly |
-| Stick hits full deflection | Corresponding axis bar flashes, gimbal ring briefly brightens |
-| Throttle surge | FPV cam vignette tightens, slight zoom-in (`scale 1.02`) on the scene |
-| Move card hover | Card lifts 2px, left difficulty bar elongates 2px, description slides into full visibility |
-| Loop toggle on | `↺` icon rotates 360° with `--ease-bounce`, loop badge appears on scrubber |
-| Theme switch | Full-page crossfade via CSS transition on `--bg-void` and sky gradient |
+| Pumili ng move | Ang sidebar card ay nag-a-activate, ang canvases ay nag-fa-fade+scale in (`opacity 0→1`, `scale 0.97→1`), ang info panel ay nagsi-slide pataas |
+| Pinindot ang play button | Ang button ay dumidikit (`scale 0.9`) tapos bumabalik, ang ripple ay lumalawak palabas |
+| Ini-drag ang scrubber | Live na nag-a-update ang FPV cam at stick cam, nag-a-update rin ang OSD values in real time |
+| Binago ang speed | Ang aktibong speed pill ay nagpo-pop ng `scale 1.15` bounce, maayos na nagbabago ang playback rate |
+| Naabot ang dulo ng move | Nagpu-pulse nang isang beses ang scrubber thumb, nag-a-auto-pause, bahagyang nagliliwanag ang play button |
+| Naabot ng stick ang full deflection | Kumikislap ang katumbas na axis bar, bahagyang nagiliwanag ang gimbal ring |
+| Tumaas nang bilis ang throttle | Nag-tightening ang FPV cam vignette, bahagyang zoom-in (`scale 1.02`) sa eksena |
+| Hover sa move card | Tumaas ang card ng 2px, lumalo ng 2px ang kaliwang difficulty bar, nag-si-slide patungo sa full visibility ang paliwanag |
+| Na-on ang loop toggle | Umiikot ng 360° ang `↺` icon na may `--ease-bounce`, lumalabas ang loop badge sa scrubber |
+| Binago ang theme | Full-page crossfade sa pamamagitan ng CSS transition sa `--bg-void` at sky gradient |
 
 ---
 
 ### Responsive Behavior
 
-**≥1200px (desktop):** Full side-by-side layout as described above.
+**≥1200px (desktop):** Buong side-by-side na layout gaya ng nakalarawan sa itaas.
 
 **768px–1199px (tablet):**
-- Sidebar collapses to icon rail (difficulty dot + abbreviated name on hover tooltip)
-- Canvases stack vertically (FPV cam top, stick cam bottom)
-- Playback bar remains fixed at bottom
+- Nagko-collapse ang sidebar sa icon rail (difficulty dot + pinaikli na pangalan sa hover tooltip)
+- Nagsi-stack nang patayo ang canvases (FPV cam sa itaas, stick cam sa ibaba)
+- Nananatiling naka-fix ang playback bar sa ibaba
 
 **<768px (mobile):**
-- Full-width single column
-- Sidebar becomes bottom sheet triggered by a floating hamburger button
-- Canvases fill viewport width, scrub by swiping the FPV panel
-- Tap-hold on stick cam to pause and inspect frame
+- Full-width na solong haligi
+- Nagiging bottom sheet ang sidebar na triggered ng floating hamburger button
+- Pinupuno ng canvases ang lapad ng viewport, nag-e-enable ng swipe para sa pag-scrub sa FPV panel
+- Tap-hold sa stick cam para mag-pause at suriin ang frame
 
 ---
 
-### Theme Variants
+### Mga Tema
 
-**Night/Race (default):** Deep black backgrounds, teal + pink neon accents as described above.
+**Night/Race (default):** Malalim na itim na background, teal + pink neon accents gaya ng nakalarawan sa itaas.
 
-**Daylight:** Sky gradient becomes light blue, ground is bright green, OSD inverts to dark-on-light, sidebar uses a light grey surface. Toggle via sun/moon icon in the header.
+**Daylight (Araw):** Nagiging maliwanag na asul ang sky gradient, maliwanag na berde ang lupa, ini-invert ang OSD sa dark-on-light, gumagamit ang sidebar ng maliwanag na grey surface. I-toggle gamit ang sun/moon icon sa header.
 
-**Betaflight OSD (hardcore):** Monochrome green-on-black everywhere, pixel-grid font, CRT scanlines at 8% opacity, no rounded corners. For pilots who want the authentic Betaflight look.
+**Betaflight OSD (hardcore):** Monochrome na berde-sa-itim sa lahat ng dako, pixel-grid font, CRT scanlines sa 8% opacity, walang bilugang sulok. Para sa mga pilot na gusto ang tunay na hitsura ng Betaflight.
 
 ---
 
 ## Visual Design Reference
 
+```
+┌─────────────────────────────────────────────────────────────┐
+│  FPV FREESTYLE MOVES                              [⚙] [🌙]  │
+├──────────────┬──────────────────────────────────────────────┤
+│ SIMULA       │                                              │
+│              │   [  STICK CAM  ] │ [    FPV CAM    ]        │
+│ > Split-S ●● │                   │                          │
+│              │   ┌──────────┐    │  ░░░░░░░░░░░░░░░░        │
+│ KATAMTAMAN   │   │  ╭────╮  │    │  ░░░ LANGIT ░░░░░        │
+│   Power Loop │   │  │ ●  │  │    │  ──────────────── ← HZ  │
+│   Matty Flip │   │  ╰────╯  │    │  ░░░ LUPA ░░░░░░░        │
+│   Knife Edge │   └──────────┘    │  124km/h  4S 87%        │
+│              │                   │                          │
+│ MAHIRAP      ├───────────────────┴─────────────────────────┤
+│   Juicy Spin │  |◀  ▶  ▶|  [──────●──────────]  0.5× 1× 2×│
+└──────────────┴──────────────────────────────────────────────┘
+```
+
 ---
 
-## Getting Started
+## Paano Magsimula
 
-No build step required. Open `index.html` in any modern browser, or serve locally:
+Walang kailangang i-build. Buksan lang ang `index.html` sa kahit anong modernong browser, o mag-serve nang lokal:
 
 ```bash
 npx serve .
-# or
+# o kaya naman
 python3 -m http.server 8080
 ```
 
 ---
 
-## File Creation Order
+## Pagkakasunod ng Paggawa ng Files
 
-Follow this sequence to build the app incrementally:
+Sundin ang sequence na ito para matayo ang app nang hakbang-hakbang:
 
-1. `styles/tokens.css` + `styles/reset.css` — design system foundation
-2. `index.html` + `styles/layout.css` + `styles/sidebar.css` — shell with real card designs
-3. `styles/controls.css` + `styles/animations.css` — playback bar and all transitions
-4. `js/renderers/stick-cam.js` — draw styled gimbals with channel color glow
-5. `js/renderers/fpv-cam.js` + `js/hud.js` — FPV scene with horizon + OSD layer
+1. `styles/tokens.css` + `styles/reset.css` — pundasyon ng design system
+2. `index.html` + `styles/layout.css` + `styles/sidebar.css` — shell na may tunay na card designs
+3. `styles/controls.css` + `styles/animations.css` — playback bar at lahat ng transitions
+4. `js/renderers/stick-cam.js` — gumuhit ng styled na gimbals na may channel color glow
+5. `js/renderers/fpv-cam.js` + `js/hud.js` — FPV scene na may horizon + OSD layer
 6. `js/renderers/effects.js` — vignette, motion blur, scanlines, chromatic aberration
-7. `js/moves/move-data.js` + `js/moves/split-s.js` — first move end-to-end
-8. `js/playback.js` — wire up timeline with scrubber and speed controls
-9. `js/main.js` — connect everything, theme switching, micro-interactions
-10. Remaining move files (one per move)
+7. `js/moves/move-data.js` + `js/moves/split-s.js` — unang move mula simula hanggang katapusan
+8. `js/playback.js` — i-wire up ang timeline na may scrubber at speed controls
+9. `js/main.js` — i-connect ang lahat, theme switching, micro-interactions
+10. Mga natitirang move files (isa bawat move)
 11. Responsive layout — tablet icon rail, mobile bottom sheet
-12. Intro screen, loop mode, ghost trail, optional sound layer
+12. Intro screen, loop mode, ghost trail, opsyonal na sound layer
