@@ -1,0 +1,240 @@
+/* ── Category Groups ──────────────────────────────────────── */
+.category-group {
+  margin-bottom: var(--space-4);
+}
+
+.category-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2);
+  margin-bottom: var(--space-2);
+  position: relative;
+}
+
+.category-label span {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.category-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin-left: var(--space-2);
+}
+
+/* difficulty dot on collapsed sidebar */
+.category-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.category-group[data-level="beginner"]     .category-dot { background: var(--diff-beginner); }
+.category-group[data-level="intermediate"] .category-dot { background: var(--diff-intermediate); }
+.category-group[data-level="advanced"]     .category-dot { background: var(--diff-advanced); }
+.category-group[data-level="pro"]          .category-dot { background: var(--diff-pro); }
+
+/* ── Move Card ────────────────────────────────────────────── */
+.move-card {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: var(--border-panel);
+  overflow: hidden;
+  cursor: pointer;
+  margin-bottom: var(--space-2);
+  position: relative;
+  transition:
+    transform   var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap),
+    background  var(--dur-fast) var(--ease-snap),
+    box-shadow  var(--dur-fast) var(--ease-snap);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.move-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: var(--glow-card);
+}
+
+.move-card:active {
+  transform: translateY(0);
+}
+
+.move-card.active {
+  background: var(--bg-raised);
+  border-color: rgba(0, 245, 212, 0.2);
+  box-shadow: var(--glow-subtle);
+}
+
+/* Difficulty color bar on left edge */
+.move-card-bar {
+  width: 3px;
+  flex-shrink: 0;
+  transition: width var(--dur-fast) var(--ease-snap);
+}
+
+.move-card:hover .move-card-bar,
+.move-card.active .move-card-bar {
+  width: 5px;
+}
+
+.category-group[data-level="beginner"]     .move-card-bar { background: var(--diff-beginner); }
+.category-group[data-level="intermediate"] .move-card-bar { background: var(--diff-intermediate); }
+.category-group[data-level="advanced"]     .move-card-bar { background: var(--diff-advanced); }
+.category-group[data-level="pro"]          .move-card-bar { background: var(--diff-pro); }
+
+/* glow on active */
+.move-card.active .move-card-bar {
+  box-shadow: 2px 0 8px currentColor;
+}
+
+.category-group[data-level="beginner"]     .move-card.active .move-card-bar { box-shadow: 2px 0 8px var(--diff-beginner); }
+.category-group[data-level="intermediate"] .move-card.active .move-card-bar { box-shadow: 2px 0 8px var(--diff-intermediate); }
+.category-group[data-level="advanced"]     .move-card.active .move-card-bar { box-shadow: 2px 0 8px var(--diff-advanced); }
+.category-group[data-level="pro"]          .move-card.active .move-card-bar { box-shadow: 2px 0 8px var(--diff-pro); }
+
+/* Card body */
+.move-card-body {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.move-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.move-card-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--dur-fast) var(--ease-snap);
+}
+
+.move-card.active .move-card-name {
+  color: var(--accent-primary);
+}
+
+.move-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Difficulty dots */
+.diff-dots {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.diff-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bg-raised);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background var(--dur-fast) var(--ease-snap);
+}
+
+.diff-dot.filled {
+  border-color: transparent;
+}
+
+.category-group[data-level="beginner"]     .diff-dot.filled { background: var(--diff-beginner); }
+.category-group[data-level="intermediate"] .diff-dot.filled { background: var(--diff-intermediate); }
+.category-group[data-level="advanced"]     .diff-dot.filled { background: var(--diff-advanced); }
+.category-group[data-level="pro"]          .diff-dot.filled { background: var(--diff-pro); }
+
+/* Duration badge */
+.move-card-duration {
+  font-family: var(--font-osd);
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-raised);
+  color: var(--accent-primary);
+  border: var(--border-accent);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* Card description */
+.move-card-desc {
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+/* Active arrow */
+.move-card-arrow {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%) translateX(4px);
+  opacity: 0;
+  color: var(--accent-primary);
+  font-size: 12px;
+  transition:
+    opacity  var(--dur-fast) var(--ease-snap),
+    transform var(--dur-fast) var(--ease-snap);
+  pointer-events: none;
+}
+
+.move-card.active .move-card-arrow {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Collapsed sidebar — show only icon */
+@media (max-width: 1199px) {
+  .move-card {
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-1);
+  }
+
+  .move-card-body,
+  .move-card-arrow {
+    display: none;
+  }
+
+  .move-card-bar {
+    width: 100%;
+    height: 32px;
+    border-radius: var(--radius-sm);
+  }
+
+  .move-card:hover .move-card-bar,
+  .move-card.active .move-card-bar {
+    width: 100%;
+    filter: brightness(1.3);
+  }
+
+  .category-label::after { display: none; }
+}

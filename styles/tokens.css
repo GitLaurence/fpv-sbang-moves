@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ─── Backgrounds ─────────────────────────────────────── */
+  --bg-void:       #050608;
+  --bg-panel:      #0b0d12;
+  --bg-surface:    #12151d;
+  --bg-raised:     #1a1e2a;
+  --bg-overlay:    rgba(5, 6, 8, 0.85);
+
+  /* ─── Accent Colors ───────────────────────────────────── */
+  --accent-primary:   #00f5d4;
+  --accent-secondary: #f72585;
+  --accent-throttle:  #f7b731;
+  --accent-yaw:       #a855f7;
+  --accent-pitch:     #3b82f6;
+  --accent-roll:      #00f5d4;
+
+  /* ─── Difficulty Colors ───────────────────────────────── */
+  --diff-beginner:     #22c55e;
+  --diff-intermediate: #eab308;
+  --diff-advanced:     #f97316;
+  --diff-pro:          #f72585;
+
+  /* ─── Text ────────────────────────────────────────────── */
+  --text-primary:   #e8eaf0;
+  --text-secondary: #6b7280;
+  --text-muted:     #374151;
+  --text-osd:       #ffffff;
+
+  /* ─── Typography ──────────────────────────────────────── */
+  --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  --font-ui:      'Inter', system-ui, sans-serif;
+  --font-osd:     'JetBrains Mono', 'Courier New', monospace;
+
+  /* ─── Borders ─────────────────────────────────────────── */
+  --border-panel:  1px solid rgba(255, 255, 255, 0.06);
+  --border-accent: 1px solid rgba(0, 245, 212, 0.3);
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.03);
+
+  /* ─── Glow / Shadow ───────────────────────────────────── */
+  --glow-primary: 0 0 8px rgba(0, 245, 212, 0.6),
+                  0 0 24px rgba(0, 245, 212, 0.2);
+  --glow-danger:  0 0 8px rgba(247, 37, 133, 0.6),
+                  0 0 24px rgba(247, 37, 133, 0.2);
+  --glow-subtle:  0 0 12px rgba(0, 245, 212, 0.08);
+  --glow-card:    0 4px 24px rgba(0, 0, 0, 0.4);
+
+  --shadow-panel: inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+                  0 0 0 1px rgba(0, 0, 0, 0.6);
+
+  /* ─── Radius ──────────────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* ─── Spacing ─────────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  /* ─── Transitions ─────────────────────────────────────── */
+  --ease-snap:   cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast:    120ms;
+  --dur-base:    220ms;
+  --dur-slow:    400ms;
+
+  /* ─── Layout Dimensions ───────────────────────────────── */
+  --sidebar-width:   220px;
+  --controls-height: 64px;
+  --panel-header-h:  36px;
+  --resize-handle-w: 4px;
+}
+
+/* ── Betaflight OSD theme ─────────────────────────────────── */
+[data-theme="betaflight"] {
+  --bg-void:      #000000;
+  --bg-panel:     #000000;
+  --bg-surface:   #0a0a0a;
+  --bg-raised:    #111111;
+  --accent-primary:   #00ff41;
+  --accent-secondary: #00ff41;
+  --text-primary:     #00ff41;
+  --text-secondary:   #007a1f;
+  --border-panel:  1px solid #003310;
+  --border-accent: 1px solid #00ff41;
+  --glow-primary:  0 0 6px rgba(0, 255, 65, 0.8);
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+}
+
+/* ── Daylight theme ───────────────────────────────────────── */
+[data-theme="daylight"] {
+  --bg-void:      #e8ecf0;
+  --bg-panel:     #f0f2f5;
+  --bg-surface:   #ffffff;
+  --bg-raised:    #e2e6ea;
+  --text-primary:   #1a1e2a;
+  --text-secondary: #6b7280;
+  --border-panel:  1px solid rgba(0, 0, 0, 0.08);
+  --glow-primary:  0 0 8px rgba(0, 200, 170, 0.3);
+  --glow-subtle:   0 2px 8px rgba(0, 0, 0, 0.08);
+}

@@ -1,0 +1,182 @@
+/* ── Keyframe Animations ──────────────────────────────────── */
+
+@keyframes ripple-out {
+  0%   { opacity: 0.6; transform: scale(0); }
+  100% { opacity: 0;   transform: scale(2.5); }
+}
+
+@keyframes speed-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes spin-once {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: var(--glow-primary); }
+  50%       { box-shadow: var(--glow-primary), 0 0 40px rgba(0, 245, 212, 0.4); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tick-flash {
+  0%   { opacity: 1; background: var(--accent-primary); }
+  60%  { opacity: 1; background: #ffffff; }
+  100% { opacity: 0.35; background: var(--accent-primary); }
+}
+
+@keyframes gimbal-ring-flash {
+  0%   { opacity: 0.15; }
+  40%  { opacity: 0.8; }
+  100% { opacity: 0.15; }
+}
+
+@keyframes throttle-vignette {
+  0%   { opacity: 0.4; }
+  50%  { opacity: 0.65; }
+  100% { opacity: 0.4; }
+}
+
+@keyframes intro-drone {
+  0%   { opacity: 0; transform: scale(0.85) translateY(12px); }
+  60%  { opacity: 1; transform: scale(1.02) translateY(-3px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Utility Transition Classes ───────────────────────────── */
+
+/* Applied to canvases on move load */
+.canvas-enter {
+  animation: scale-in var(--dur-slow) var(--ease-out) both;
+}
+
+/* Applied to move info panel content on move change */
+.info-enter {
+  animation: slide-up var(--dur-base) var(--ease-out) both;
+}
+
+/* Applied to sidebar card on activation */
+.card-activate {
+  animation: scale-in var(--dur-fast) var(--ease-bounce) both;
+}
+
+/* End-of-move scrubber pulse */
+.scrubber-end-pulse::-webkit-slider-thumb {
+  animation: pulse-glow 0.6s var(--ease-snap) 2;
+}
+
+/* Stick axis bar flash on full deflection */
+.axis-bar-flash {
+  animation: tick-flash 0.3s var(--ease-snap) forwards;
+}
+
+/* Global page theme crossfade */
+html {
+  transition:
+    background-color var(--dur-slow) var(--ease-snap),
+    color            var(--dur-slow) var(--ease-snap);
+}
+
+/* ── Scanline Overlay ─────────────────────────────────────── */
+/* Applied via pseudo-element on .canvas-wrap */
+.canvas-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 4px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+[data-theme="betaflight"] .canvas-wrap::after {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 1px,
+    rgba(0, 255, 65, 0.04) 1px,
+    rgba(0, 255, 65, 0.04) 2px
+  );
+}
+
+/* ── Intro Screen ─────────────────────────────────────────── */
+#intro-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-void);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  z-index: 1000;
+  animation: fade-in 0.4s var(--ease-out) both;
+  transition: opacity var(--dur-slow) var(--ease-snap);
+}
+
+#intro-screen.hiding {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-logo {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 6vw, 72px);
+  letter-spacing: 0.12em;
+  color: var(--accent-primary);
+  text-shadow: var(--glow-primary);
+  animation: intro-drone 0.8s var(--ease-bounce) 0.2s both;
+}
+
+.intro-sub {
+  font-family: var(--font-osd);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--text-secondary);
+  animation: fade-in 0.6s var(--ease-out) 0.7s both;
+}
+
+.intro-loader {
+  width: 120px;
+  height: 2px;
+  background: var(--bg-raised);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  animation: fade-in 0.4s var(--ease-out) 0.9s both;
+}
+
+.intro-loader-bar {
+  height: 100%;
+  background: var(--accent-primary);
+  box-shadow: var(--glow-primary);
+  border-radius: var(--radius-pill);
+  width: 0%;
+  transition: width 1s var(--ease-out);
+}
