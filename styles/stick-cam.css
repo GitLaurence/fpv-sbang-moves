@@ -1,0 +1,90 @@
+/* ── Stick Cam Panel Extra Chrome ─────────────────────────── */
+
+/* Axis meters container injected below the canvas by stick-cam.js */
+#stick-meters {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  background: rgba(5, 6, 8, 0.72);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 8px 12px 10px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.axis-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.axis-group:first-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.axis-row {
+  display: grid;
+  grid-template-columns: 12px 1fr 36px;
+  align-items: center;
+  gap: 6px;
+  height: 14px;
+}
+
+.axis-label {
+  font-family: var(--font-osd);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-align: right;
+}
+
+.axis-label.t { color: var(--accent-throttle); }
+.axis-label.y { color: var(--accent-yaw); }
+.axis-label.p { color: var(--accent-pitch); }
+.axis-label.r { color: var(--accent-roll); }
+
+.axis-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  position: relative;
+  overflow: visible;
+}
+
+/* center tick mark */
+.axis-track::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  width: 1px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateX(-50%);
+}
+
+.axis-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+  transition: left 0.05s linear, width 0.05s linear;
+}
+
+.axis-fill.t { background: var(--accent-throttle); box-shadow: 0 0 6px rgba(247, 183, 49, 0.5); }
+.axis-fill.y { background: var(--accent-yaw);      box-shadow: 0 0 6px rgba(168, 85, 247, 0.5); }
+.axis-fill.p { background: var(--accent-pitch);    box-shadow: 0 0 6px rgba(59, 130, 246, 0.5); }
+.axis-fill.r { background: var(--accent-roll);     box-shadow: 0 0 6px rgba(0, 245, 212, 0.5); }
+
+.axis-value {
+  font-family: var(--font-osd);
+  font-size: 9px;
+  text-align: right;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}

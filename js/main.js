@@ -1,4 +1,5 @@
 import { MOVES, LEVELS } from './moves/move-data.js';
+import { StickCamRenderer } from './renderers/stick-cam.js';
 
 // ── DOM refs ───────────────────────────────────────────────
 const app           = document.getElementById('app');
@@ -33,6 +34,10 @@ const infoTips      = document.getElementById('info-tips');
 const resizeHandle  = document.getElementById('resize-handle');
 const main          = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
+
+// ── Renderers ──────────────────────────────────────────────
+const stickCanvas   = document.getElementById('stick-canvas');
+const stickRenderer = new StickCamRenderer(stickCanvas);
 
 // ── State ──────────────────────────────────────────────────
 let currentMove   = null;
@@ -137,6 +142,11 @@ function loadMove(move) {
   playing     = false;
   updatePlayIcon();
 
+  // Clear stick cam trail so previous move doesn't bleed in
+  stickRenderer._leftTrail  = [];
+  stickRenderer._rightTrail = [];
+  stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+
   // Update info panel
   infoName.textContent     = move.name;
   infoDesc.textContent     = move.description;
@@ -225,10 +235,11 @@ function interpolateFrame(move, t) {
   return { ...kfs[kfs.length - 1] };
 }
 
-// ── Render Frame (stub — Phases 2–3 will draw) ─────────────
+// ── Render Frame ───────────────────────────────────────────
 function renderFrame(t) {
   if (!currentMove) return;
   const frame = interpolateFrame(currentMove, t);
+  stickRenderer.render(frame);
   window.dispatchEvent(new CustomEvent('render-frame', { detail: frame }));
   updateScrubber();
 }
@@ -476,6 +487,7 @@ const ro = new ResizeObserver(() => {
     canvas.width  = canvas.offsetWidth  * devicePixelRatio;
     canvas.height = canvas.offsetHeight * devicePixelRatio;
   });
+  stickRenderer.resize();
   if (currentMove) renderFrame(currentTime);
 });
 
