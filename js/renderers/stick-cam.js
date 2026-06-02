@@ -15,7 +15,7 @@ export class StickCamRenderer {
     this.canvas = canvas;
     this.ctx    = canvas.getContext('2d');
 
-    // Trail history: [{throttle,yaw,pitch,roll}, ...]
+    // Trail history: [{x,y}, ...]
     this._leftTrail  = [];
     this._rightTrail = [];
 
@@ -25,8 +25,44 @@ export class StickCamRenderer {
     // Last full-deflection flash state
     this._flash = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
 
+    // Ghost trail — recorded path from previous playthrough
+    this._ghostLeft    = [];
+    this._ghostRight   = [];
+    this._ghostEnabled = false;
+    this._recording    = false;
+    this._recLeft      = [];
+    this._recRight     = [];
+
     // Build meter DOM once
     this._buildMeters();
+  }
+
+  // ── Ghost Trail API ───────────────────────────────────────
+
+  setGhostEnabled(on) {
+    this._ghostEnabled = on;
+    if (!on) { this._ghostLeft = []; this._ghostRight = []; }
+  }
+
+  startRecording() {
+    this._recLeft  = [];
+    this._recRight = [];
+    this._recording = true;
+  }
+
+  commitRecording() {
+    if (!this._recording) return;
+    this._recording  = false;
+    this._ghostLeft  = this._recLeft.slice();
+    this._ghostRight = this._recRight.slice();
+  }
+
+  clearGhost() {
+    this._ghostLeft  = [];
+    this._ghostRight = [];
+    this._recording  = false;
+    this._recLeft    = [];
+    this._recRight   = [];
   }
 
   // ── Public ────────────────────────────────────────────────
@@ -51,11 +87,20 @@ export class StickCamRenderer {
       if (this._flash[ch] > 0) this._flash[ch]--;
     }
 
-    // Record trail positions
+    // Live trail positions
     this._leftTrail.push({ x: s.yaw, y: -s.throttle });
     this._rightTrail.push({ x: s.roll, y: -s.pitch });
     if (this._leftTrail.length  > TRAIL_LENGTH) this._leftTrail.shift();
     if (this._rightTrail.length > TRAIL_LENGTH) this._rightTrail.shift();
+
+    // Ghost recording — sample every other frame for efficiency
+    if (this._recording && this._recLeft.length % 2 === 0) {
+      this._recLeft.push({ x: s.yaw, y: -s.throttle });
+      this._recRight.push({ x: s.roll, y: -s.pitch });
+    } else if (this._recording) {
+      this._recLeft.push(null); // keep indices aligned
+      this._recRight.push(null);
+    }
 
     this._draw();
     this._updateMeters(frame);
@@ -93,11 +138,53 @@ export class StickCamRenderer {
     const rightCX = halfW + halfW / 2;
     const CY      = H / 2;
 
+    // Ghost trail — drawn first so it sits behind live trail
+    if (this._ghostEnabled && this._ghostLeft.length > 1) {
+      this._drawGhostPath(leftCX,  CY, radius, this._ghostLeft);
+      this._drawGhostPath(rightCX, CY, radius, this._ghostRight);
+    }
+
     this._drawGimbal(leftCX,  CY, radius, this._smooth.yaw,  -this._smooth.throttle, this._leftTrail,  'yaw', 'throttle');
     this._drawGimbal(rightCX, CY, radius, this._smooth.roll, -this._smooth.pitch,    this._rightTrail, 'roll', 'pitch');
 
     // Labels
     this._drawLabels(leftCX, rightCX, CY, radius, dpr);
+  }
+
+  _drawGhostPath(cx, cy, r, positions) {
+    const ctx   = this.ctx;
+    const pts   = positions.filter(Boolean);
+    if (pts.length < 2) return;
+
+    // Draw as a connected path with gradient opacity
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+
+    // Draw dots along the path
+    for (let i = 0; i < pts.length; i++) {
+      const p   = pts[i];
+      const age = i / pts.length;
+      const px  = cx + p.x * r;
+      const py  = cy + p.y * r;
+      const sz  = (1.5 + age * 2) * (devicePixelRatio || 1);
+
+      ctx.beginPath();
+      ctx.arc(px, py, sz, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,245,212,${age * 0.8})`;
+      ctx.fill();
+    }
+
+    // Also connect with a faint line for continuity
+    ctx.beginPath();
+    ctx.moveTo(cx + pts[0].x * r, cy + pts[0].y * r);
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(cx + pts[i].x * r, cy + pts[i].y * r);
+    }
+    ctx.strokeStyle = 'rgba(0,245,212,0.12)';
+    ctx.lineWidth   = 1 * (devicePixelRatio || 1);
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   _drawGimbal(cx, cy, r, stickX, stickY, trail, chX, chY) {

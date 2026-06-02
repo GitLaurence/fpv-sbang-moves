@@ -9,6 +9,8 @@ const SHORTCUTS = [
   { keys: ['End'],            desc: 'Pumunta sa dulo' },
   { keys: ['[', ']'],         desc: 'Baguhin ang playback speed' },
   { keys: ['L'],              desc: 'I-toggle ang loop mode' },
+  { keys: ['M'],              desc: 'I-mute / i-unmute ang audio' },
+  { keys: ['G'],              desc: 'I-toggle ang ghost trail' },
   { keys: ['?'],              desc: 'Ipakita / itago ang shortcut list' },
 ];
 

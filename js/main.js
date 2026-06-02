@@ -7,6 +7,7 @@ import { SidebarFilter }       from './ui/sidebar-filter.js';
 import { ShortcutsOverlay }    from './ui/shortcuts.js';
 import { PhaseTracker }        from './ui/phase-tracker.js';
 import { MobileSheet }         from './ui/mobile-sheet.js';
+import { AudioEngine }         from './audio.js';
 
 // ── DOM refs ───────────────────────────────────────────────
 const app           = document.getElementById('app');
@@ -26,6 +27,8 @@ const btnStepBack   = document.getElementById('btn-step-back');
 const btnStepFwd    = document.getElementById('btn-step-fwd');
 const btnLoop       = document.getElementById('btn-loop');
 const btnStep       = document.getElementById('btn-step');
+const btnMute       = document.getElementById('btn-mute');
+const btnGhost      = document.getElementById('btn-ghost');
 const speedPills    = document.querySelectorAll('.speed-pill');
 const themeBtns     = document.querySelectorAll('.theme-btn');
 const fpvHeader     = document.getElementById('fpv-header');
@@ -50,6 +53,19 @@ const infoPanel    = new InfoPanel();
 const phaseTracker = new PhaseTracker();
 // SidebarFilter, ShortcutsOverlay, MobileSheet init after sidebar is built (see bottom)
 
+// ── Audio Engine ───────────────────────────────────────────
+const audio     = new AudioEngine();
+let   audioInit = false;
+
+function ensureAudio() {
+  if (audioInit) return;
+  audioInit = true;
+  audio.init();
+}
+
+// ── Ghost Trail State ──────────────────────────────────────
+let ghostEnabled = false;
+
 // ── Playback Engine ────────────────────────────────────────
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
@@ -58,11 +74,20 @@ const engine = new PlaybackEngine(
     fpvRenderer.render(frame);
     phaseTracker.update(frame.t);
     syncScrubber();
+    audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
+    audio.resume();
   },
   // onEnd — reached the end of a move
   () => {
     updatePlayBtn();
     pulseScrubberEnd();
+    audio.silence();
+    if (engine.isLooping && ghostEnabled) {
+      stickRenderer.commitRecording();
+      stickRenderer.startRecording();
+    } else if (ghostEnabled) {
+      stickRenderer.commitRecording();
+    }
   }
 );
 
@@ -170,11 +195,13 @@ function loadMove(move) {
   stickRenderer._leftTrail  = [];
   stickRenderer._rightTrail = [];
   stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+  stickRenderer.clearGhost();
   fpvRenderer.resetSim();
 
   // Load into engine (seeks to 0 and emits first frame)
   engine.load(move);
   phaseTracker.load(move);
+  audio.silence();
 
   updatePlayBtn();
 
@@ -184,7 +211,6 @@ function loadMove(move) {
   timeTotal.textContent = fmtTime(move.durationSec);
 
   // Auto-scroll active card into view
-  const activeCard = document.querySelector(`.move-card[data-id="${move.id}"]`);
   activeCard?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   // Sync mobile sheet active state
@@ -241,12 +267,37 @@ function buildTicks(move) {
 // ── Control Events ─────────────────────────────────────────
 btnPlay.addEventListener('click', () => {
   if (!engine.move) return;
+  ensureAudio();
   engine.toggle();
   updatePlayBtn();
+
+  if (!engine.isPlaying) {
+    audio.silence();
+  } else if (ghostEnabled) {
+    stickRenderer.startRecording();
+  }
 
   btnPlay.classList.remove('ripple');
   void btnPlay.offsetWidth;
   btnPlay.classList.add('ripple');
+});
+
+btnMute.addEventListener('click', () => {
+  ensureAudio();
+  const muted = audio.toggleMute();
+  btnMute.classList.toggle('active', muted);
+  btnMute.setAttribute('aria-pressed', String(muted));
+  btnMute.querySelector('use').setAttribute('href', muted ? '#icon-mute' : '#icon-volume');
+});
+
+btnGhost.addEventListener('click', () => {
+  ghostEnabled = !ghostEnabled;
+  stickRenderer.setGhostEnabled(ghostEnabled);
+  btnGhost.classList.toggle('active', ghostEnabled);
+  btnGhost.setAttribute('aria-pressed', String(ghostEnabled));
+  if (ghostEnabled && engine.isPlaying) {
+    stickRenderer.startRecording();
+  }
 });
 
 btnSkipStart.addEventListener('click', () => engine.skipToStart());
@@ -322,6 +373,7 @@ themeBtns.forEach(btn => {
 // ── Keyboard Shortcuts ─────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
+  ensureAudio();
   switch (e.key) {
     case ' ':
       e.preventDefault();
@@ -362,6 +414,14 @@ document.addEventListener('keydown', e => {
       break;
     case 'End':
       engine.skipToEnd();
+      break;
+    case 'm':
+    case 'M':
+      btnMute.click();
+      break;
+    case 'g':
+    case 'G':
+      btnGhost.click();
       break;
   }
 });
