@@ -77,6 +77,15 @@ let ghostEnabled = false;
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
   (frame) => {
+    // When YouTube is active, use the video's clock as the authoritative
+    // time source. Resync the engine if it drifts more than 80 ms.
+    if (_ytActive) {
+      const ytTime = ytPlayer.currentTime();
+      if (ytTime !== null && Math.abs(ytTime - frame.t) > 0.08) {
+        engine.seek(Math.max(0, ytTime));
+        return; // seek will trigger a fresh frame
+      }
+    }
     stickRenderer.render(frame);
     fpvRenderer.render(frame);
     phaseTracker.update(frame.t);

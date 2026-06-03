@@ -41,6 +41,12 @@ export class YouTubePlayer {
     this._player.seekTo(this._offset + engineTime, true);
   }
 
+  /** Returns engine-relative time (YT time minus offset), or null if not ready */
+  currentTime() {
+    if (!this._ready) return null;
+    return this._player.getCurrentTime() - this._offset;
+  }
+
   setRate(rate) {
     if (!this._ready) return;
     // YT only supports specific rates: 0.25, 0.5, 1, 1.5, 2
