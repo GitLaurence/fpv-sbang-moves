@@ -53,7 +53,8 @@ const ytBadge       = document.getElementById('yt-badge');
 const fpvBadge      = document.getElementById('fpv-badge');
 const ytPlayer      = new YouTubePlayer('yt-player');
 
-let _ytActive = false;
+let _ytActive      = false;
+let _ytBufferPause = false; // engine was paused because YT was buffering
 
 // ── UI Modules ─────────────────────────────────────────────
 const infoPanel    = new InfoPanel();
@@ -77,13 +78,17 @@ let ghostEnabled = false;
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
   (frame) => {
-    // When YouTube is active, use the video's clock as the authoritative
-    // time source. Resync the engine if it drifts more than 80 ms.
-    if (_ytActive) {
-      const ytTime = ytPlayer.currentTime();
-      if (ytTime !== null && Math.abs(ytTime - frame.t) > 0.08) {
-        engine.seek(Math.max(0, ytTime));
-        return; // seek will trigger a fresh frame
+    // When YouTube is active and actually playing, use YT's clock as the
+    // authoritative time source. Only resync during active playback to
+    // avoid seekTo spam while paused or buffering.
+    if (_ytActive && engine.isPlaying) {
+      const ytState = ytPlayer.getState();
+      if (ytState === 1 /* PLAYING */) {
+        const ytTime = ytPlayer.currentTime();
+        if (ytTime !== null && Math.abs(ytTime - frame.t) > 0.08) {
+          engine.seek(Math.max(0, ytTime));
+          return; // seek will trigger a fresh frame
+        }
       }
     }
     stickRenderer.render(frame);
@@ -107,6 +112,36 @@ const engine = new PlaybackEngine(
     }
   }
 );
+
+// ── YouTube state handler ──────────────────────────────────
+// YT.PlayerState: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
+ytPlayer.onStateChange((state) => {
+  if (!_ytActive) return;
+  if (state === 3 /* BUFFERING */ && engine.isPlaying) {
+    // Pause the engine while video catches up; show indicator
+    engine.pause();
+    audio.silence();
+    updatePlayBtn();
+    _ytBufferPause = true;
+    ytBadge.textContent = '⏳ LOADING…';
+  } else if (state === 1 /* PLAYING */ && _ytBufferPause) {
+    // Video is playing again — resync engine to YT and resume
+    _ytBufferPause = false;
+    ytBadge.textContent = '▶ YT VIDEO';
+    const ytTime = ytPlayer.currentTime();
+    if (ytTime !== null) engine.seek(Math.max(0, ytTime));
+    engine.play();
+    updatePlayBtn();
+    if (ghostEnabled) stickRenderer.startRecording();
+  } else if (state === 0 /* ENDED */ && engine.isPlaying) {
+    // YT ended (e.g. move duration longer than clip) — just stop
+    engine.pause();
+    audio.silence();
+    updatePlayBtn();
+    _ytBufferPause = false;
+    ytBadge.textContent = '▶ YT VIDEO';
+  }
+});
 
 // ── Helpers ────────────────────────────────────────────────
 function fmtTime(sec) {
@@ -216,10 +251,12 @@ function loadMove(move) {
   fpvRenderer.resetSim();
 
   // Switch between YouTube video and canvas FPV renderer
-  _ytActive = !!move.youtubeId;
+  _ytActive      = !!move.youtubeId;
+  _ytBufferPause = false;
   fpvCanvas.style.display    = _ytActive ? 'none' : '';
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
+  ytBadge.textContent        = '▶ YT VIDEO';
   fpvBadge.style.display     = _ytActive ? 'none' : '';
   if (_ytActive) {
     ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);

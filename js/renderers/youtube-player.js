@@ -10,6 +10,7 @@ export class YouTubePlayer {
     this._ready    = false;
     this._offset   = 0; // seconds into YT video where move starts
     this._pending  = null;
+    this._onState  = null; // external state-change callback
     this._loadApi();
   }
 
@@ -41,12 +42,6 @@ export class YouTubePlayer {
     this._player.seekTo(this._offset + engineTime, true);
   }
 
-  /** Returns engine-relative time (YT time minus offset), or null if not ready */
-  currentTime() {
-    if (!this._ready) return null;
-    return this._player.getCurrentTime() - this._offset;
-  }
-
   setRate(rate) {
     if (!this._ready) return;
     // YT only supports specific rates: 0.25, 0.5, 1, 1.5, 2
@@ -55,6 +50,23 @@ export class YouTubePlayer {
       Math.abs(cur - rate) < Math.abs(prev - rate) ? cur : prev
     );
     this._player.setPlaybackRate(clamped);
+  }
+
+  /** Returns engine-relative time (YT time minus offset), or null if not ready */
+  currentTime() {
+    if (!this._ready) return null;
+    return this._player.getCurrentTime() - this._offset;
+  }
+
+  /** YT.PlayerState constants: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued */
+  getState() {
+    if (!this._ready) return -1;
+    return this._player.getPlayerState();
+  }
+
+  /** Register a callback fired on every YT state change — cb(ytPlayerState) */
+  onStateChange(cb) {
+    this._onState = cb;
   }
 
   // ── Private ───────────────────────────────────────────────
@@ -98,6 +110,9 @@ export class YouTubePlayer {
             this.load(this._pending.videoId, this._pending.offsetSeconds);
             this._pending = null;
           }
+        },
+        onStateChange: (ev) => {
+          if (this._onState) this._onState(ev.data);
         },
       },
     });
