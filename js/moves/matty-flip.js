@@ -6,38 +6,40 @@ export default {
   durationSec: 3.0,
   youtubeId:    'mZVjPSQHm9Y',
   youtubeStart: 0,
-  description: 'Backflip na sabay may full yaw spin — dalawang axis nang sabay-sabay. Ginawa ni Canadian pilot Matt Sherwood. Kailangan munang marunong ng malinis na backflip at yaw spin bago subukan.',
+  description: 'Forward pitch flip sa ibabaw ng isang bagay — patuloy na pitch forward, tapos PUNCH throttle habang inverted para lumipas nang baligtad sa ilalim. Ginawa ni MattyStuntz (Matt Sherwood).',
   tips: [
-    'Ang pitch-back at yaw ay SABAY — hindi sunud-sunod, kundi iisang input na parehong full deflection',
-    'I-time ang throttle punch sa exit para hindi bumaba pagkatapos ng flip',
-    'Mag-practice ng magkahiwalay na backflip at yaw spin muna sa simulator',
+    'PUSH pitch forward (hindi backward) — ang Matty Flip ay forward flip, hindi backflip',
+    'Huwag hintayin ang fully inverted bago mag-throttle punch — magsimula habang papunta sa inverted',
+    'Ang exit ay sa parehong direksyon — buong 360° ang loop, hindi 180°',
   ],
   phases: [
-    { t: 0.0, label: 'Entry' },
-    { t: 0.3, label: 'Snap' },
-    { t: 0.6, label: 'Rotating' },
-    { t: 1.1, label: 'Returning' },
-    { t: 1.5, label: 'Catch' },
+    { t: 0.0, label: 'Approach' },
+    { t: 0.35, label: 'Pitch Fwd' },
+    { t: 0.9, label: 'Inverted' },
+    { t: 1.0, label: 'Punch' },
+    { t: 1.6, label: 'Pull Out' },
     { t: 2.0, label: 'Recovery' },
   ],
   keyframes: [
-    // Entry — level cruise
-    { t: 0.0,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 0.2,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    // Snap initiation — SIMULTANEOUS full pitch-back + full yaw, throttle cut
-    { t: 0.3,  throttle: 0.38, yaw: -1.00, pitch: -1.00, roll:  0.00 },
-    { t: 0.55, throttle: 0.32, yaw: -1.00, pitch: -1.00, roll:  0.00 },
-    // Through the rotation — hold both inputs
-    { t: 0.75, throttle: 0.30, yaw: -1.00, pitch: -1.00, roll:  0.00 },
-    // Past inverted, returning toward upright
-    { t: 0.95, throttle: 0.30, yaw: -0.65, pitch: -0.70, roll:  0.00 },
-    { t: 1.1,  throttle: 0.30, yaw: -0.20, pitch: -0.25, roll:  0.00 },
-    // Upright — throttle punch to catch altitude loss
-    { t: 1.2,  throttle: 0.32, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 1.4,  throttle: 0.78, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // Approach — moderate speed and altitude
+    { t: 0.0,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 0.2,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // PUSH pitch forward aggressively — begin forward flip over/through object
+    { t: 0.35, throttle: 0.72, yaw:  0.00, pitch:  0.80, roll:  0.00 },
+    { t: 0.6,  throttle: 0.78, yaw:  0.00, pitch:  1.00, roll:  0.00 },
+    // Continue pitching — approaching inverted
+    { t: 0.85, throttle: 0.82, yaw:  0.00, pitch:  1.00, roll:  0.00 },
+    // INVERTED — full throttle punch to shoot forward/through under the object
+    { t: 1.0,  throttle: 1.00, yaw:  0.00, pitch:  1.00, roll:  0.00 },
+    { t: 1.2,  throttle: 1.00, yaw:  0.00, pitch:  0.90, roll:  0.00 },
+    // Past inverted, continuing forward pitch toward level
+    { t: 1.4,  throttle: 0.82, yaw:  0.00, pitch:  0.55, roll:  0.00 },
+    // Pull out to level — ease throttle
+    { t: 1.65, throttle: 0.70, yaw:  0.00, pitch:  0.15, roll:  0.00 },
+    { t: 1.85, throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
     // Recovery — settle back to cruise
-    { t: 1.8,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 2.5,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 2.2,  throttle: 0.63, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 2.6,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
     { t: 3.0,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
   ],
 };
