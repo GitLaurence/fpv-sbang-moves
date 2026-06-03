@@ -3,40 +3,49 @@ export default {
   name: 'Trippy Spin',
   level: 'advanced',
   difficulty: 4,
-  durationSec: 5.0,
-  description: 'Diagonal na corkscrew roll — sabay na nag-ro-roll at nag-yi-yaw. Medyo nakakalula sa pilot pero napaka-ganda sa footage kapag ginawa nang maayos.',
+  durationSec: 6.0,
+  description: 'Inverted orbit — lumipad nang baligtad sa paligid ng isang bagay (puno, poste) habang nakasentro ito sa camera. Kailangan ng lahat ng apat na axis nang sabay-sabay. Tinatawag ding "Cyclone" o "Inverted Orbit".',
   tips: [
-    'Sabay na i-input ang roll at yaw nang pantay na deflection — neither dominates',
-    'I-maintain ang throttle para hindi masyadong mag-dive habang nag-co-corkscrew',
-    'Mas mabilis ang combined inputs, mas tight ang corkscrew helix',
+    'Magsanay ng inverted hover nang 5+ segundo muna — kung hindi kaya, magiging crash ito',
+    'Yaw ang nagpapapaliko sa orbit, pitch ang nagpapanatiling nakatuon sa center, roll ang nagbe-bank',
+    'Mag-start sa malawak na orbit — mas madali ang malaking bilog kaysa maliit',
   ],
   phases: [
     { t: 0.0, label: 'Entry' },
-    { t: 0.5, label: 'Corkscrew' },
-    { t: 1.2, label: 'Full Spin' },
-    { t: 4.0, label: 'Wind Down' },
-    { t: 4.5, label: 'Exit' },
+    { t: 0.5, label: 'Flip Inv' },
+    { t: 1.1, label: 'Inverted' },
+    { t: 1.5, label: 'Orbit' },
+    { t: 5.0, label: 'Exit Flip' },
+    { t: 5.5, label: 'Recovery' },
   ],
   keyframes: [
-    // Entry
+    // Level approach toward the subject
     { t: 0.0,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
     { t: 0.3,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    // Ramp into corkscrew — roll and yaw together
-    { t: 0.5,  throttle: 0.61, yaw:  0.50, pitch:  0.00, roll:  0.60 },
-    { t: 0.8,  throttle: 0.60, yaw:  0.80, pitch:  0.00, roll:  0.90 },
-    { t: 1.2,  throttle: 0.60, yaw:  1.00, pitch:  0.00, roll:  1.00 },
-    // Sustain full corkscrew — tiny throttle blips feel natural
-    { t: 1.6,  throttle: 0.62, yaw:  1.00, pitch:  0.00, roll:  1.00 },
-    { t: 2.0,  throttle: 0.58, yaw:  1.00, pitch:  0.00, roll:  1.00 },
-    { t: 2.4,  throttle: 0.61, yaw:  1.00, pitch:  0.00, roll:  1.00 },
-    { t: 2.8,  throttle: 0.59, yaw:  1.00, pitch:  0.00, roll:  1.00 },
-    { t: 3.2,  throttle: 0.62, yaw:  1.00, pitch:  0.00, roll:  1.00 },
-    { t: 3.6,  throttle: 0.60, yaw:  1.00, pitch:  0.00, roll:  1.00 },
-    // Wind down — reduce both channels together
-    { t: 4.0,  throttle: 0.61, yaw:  0.60, pitch:  0.00, roll:  0.60 },
-    { t: 4.3,  throttle: 0.62, yaw:  0.25, pitch:  0.00, roll:  0.25 },
-    // Exit — level
-    { t: 4.5,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 5.0,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // Flip to inverted — full pitch forward snap, throttle cut
+    { t: 0.5,  throttle: 0.28, yaw:  0.00, pitch:  1.00, roll:  0.00 },
+    { t: 0.75, throttle: 0.25, yaw:  0.00, pitch:  1.00, roll:  0.00 },
+    // Fully inverted — re-establish throttle, center pitch
+    { t: 1.0,  throttle: 0.58, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 1.2,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // Begin inverted orbit — all 4 axes simultaneously:
+    // yaw drives orbit rotation, pitch leans toward subject,
+    // roll banks into the circle, elevated throttle holds altitude inverted
+    { t: 1.5,  throttle: 0.68, yaw:  1.00, pitch:  0.38, roll:  0.45 },
+    { t: 2.0,  throttle: 0.70, yaw:  1.00, pitch:  0.40, roll:  0.45 },
+    // Sustain orbit — throttle modulates to hold altitude
+    { t: 2.5,  throttle: 0.67, yaw:  1.00, pitch:  0.38, roll:  0.45 },
+    { t: 3.0,  throttle: 0.70, yaw:  1.00, pitch:  0.40, roll:  0.45 },
+    { t: 3.5,  throttle: 0.68, yaw:  1.00, pitch:  0.38, roll:  0.45 },
+    { t: 4.0,  throttle: 0.70, yaw:  1.00, pitch:  0.40, roll:  0.45 },
+    { t: 4.5,  throttle: 0.67, yaw:  1.00, pitch:  0.38, roll:  0.45 },
+    // Begin exit — release orbit inputs
+    { t: 5.0,  throttle: 0.42, yaw:  0.25, pitch:  0.00, roll:  0.00 },
+    // Flip back upright — pitch forward snap
+    { t: 5.1,  throttle: 0.28, yaw:  0.00, pitch:  1.00, roll:  0.00 },
+    { t: 5.3,  throttle: 0.25, yaw:  0.00, pitch:  1.00, roll:  0.00 },
+    // Back upright — punch throttle to recover
+    { t: 5.55, throttle: 0.72, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 6.0,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
   ],
 };

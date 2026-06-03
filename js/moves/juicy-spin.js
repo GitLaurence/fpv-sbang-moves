@@ -1,41 +1,45 @@
 export default {
   id: 'juicy-spin',
-  name: 'Juicy Spin',
+  name: 'Juicy Flick',
   level: 'advanced',
   difficulty: 4,
-  durationSec: 4.5,
-  description: 'Flat na yaw spin na may tamang throttle management. Kailangan ng mabilis at maayos na pag-spin habang napapanatiling level ang drone.',
+  durationSec: 3.5,
+  description: 'Throttle blip → mabilis na pitch snap papunta sa inverted → maikling "look-back" na pahinga → 180° roll pabalik sa upright. Ang "juicy" ay ang snappy, whip-like na pakiramdam ng galaw.',
   tips: [
-    'I-center ang throttle sa mid-range bago mag-spin para manatiling flat ang trajectory',
-    'Gamitin ang pitch para i-compensate ang drift habang nag-yi-yaw — maliit na correction lang',
-    'Mas mabilis ang yaw spin, mas maganda — mag-practice ng full yaw deflection nang walang humpak',
+    'Ang throttle blip at pitch snap ay halos sabay — maliit na pause lang sa pagitan',
+    'Maghintay ng buong 180° (fully inverted) bago mag-roll out — baka maging Matty Flip kung maaga',
+    'Mag-mix ng kaunting opposite yaw habang nag-ro-roll para manatiling nakatuon ang camera',
   ],
   phases: [
-    { t: 0.0, label: 'Entry' },
-    { t: 0.4, label: 'Spin Start' },
-    { t: 1.0, label: 'Full Spin' },
-    { t: 3.5, label: 'Wind Down' },
-    { t: 4.0, label: 'Stop' },
+    { t: 0.0,  label: 'Entry' },
+    { t: 0.35, label: 'Blip' },
+    { t: 0.55, label: 'Pitch Snap' },
+    { t: 1.0,  label: 'Inverted' },
+    { t: 1.25, label: 'Roll Out' },
+    { t: 1.8,  label: 'Upright' },
+    { t: 2.3,  label: 'Exit' },
   ],
   keyframes: [
-    // Entry — level and stable
-    { t: 0.0,  throttle: 0.56, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 0.3,  throttle: 0.56, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    // Ramp into full yaw
-    { t: 0.4,  throttle: 0.55, yaw:  0.55, pitch:  0.00, roll:  0.00 },
-    { t: 0.7,  throttle: 0.55, yaw:  0.90, pitch:  0.00, roll:  0.00 },
-    { t: 1.0,  throttle: 0.54, yaw:  1.00, pitch:  0.00, roll:  0.00 },
-    // Full spin — slight pitch correction to counter drift
-    { t: 1.4,  throttle: 0.55, yaw:  1.00, pitch:  0.08, roll:  0.00 },
-    { t: 1.8,  throttle: 0.54, yaw:  1.00, pitch: -0.06, roll:  0.00 },
-    { t: 2.2,  throttle: 0.56, yaw:  1.00, pitch:  0.07, roll:  0.00 },
-    { t: 2.6,  throttle: 0.54, yaw:  1.00, pitch: -0.05, roll:  0.00 },
-    { t: 3.0,  throttle: 0.55, yaw:  1.00, pitch:  0.06, roll:  0.00 },
-    // Wind down — gradually reduce yaw input
-    { t: 3.5,  throttle: 0.55, yaw:  0.70, pitch:  0.00, roll:  0.00 },
-    { t: 3.8,  throttle: 0.56, yaw:  0.30, pitch:  0.00, roll:  0.00 },
-    // Stop and stabilise
-    { t: 4.0,  throttle: 0.56, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 4.5,  throttle: 0.57, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // Entry — level forward flight
+    { t: 0.0,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 0.25, throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // Throttle blip — brief punch for entry energy
+    { t: 0.35, throttle: 0.88, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // Pitch snap — aggressive forward pitch to flip to inverted, throttle cut
+    { t: 0.55, throttle: 0.28, yaw:  0.00, pitch:  1.00, roll:  0.00 },
+    { t: 0.75, throttle: 0.25, yaw:  0.00, pitch:  1.00, roll:  0.00 },
+    // Fully inverted — sticks to center — "look-back" pause
+    { t: 1.0,  throttle: 0.25, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 1.15, throttle: 0.27, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // 180° roll to return upright (with small counter-yaw for camera alignment)
+    { t: 1.25, throttle: 0.35, yaw: -0.20, pitch:  0.00, roll:  1.00 },
+    { t: 1.55, throttle: 0.40, yaw: -0.12, pitch:  0.00, roll:  1.00 },
+    { t: 1.75, throttle: 0.48, yaw:  0.00, pitch:  0.00, roll:  0.28 },
+    // Upright — throttle punch + forward pitch for rainbow-arc exit
+    { t: 1.9,  throttle: 0.72, yaw:  0.00, pitch:  0.32, roll:  0.00 },
+    // Exit — return to cruise
+    { t: 2.4,  throttle: 0.65, yaw:  0.00, pitch:  0.05, roll:  0.00 },
+    { t: 3.0,  throttle: 0.63, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 3.5,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
   ],
 };
