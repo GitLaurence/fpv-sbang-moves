@@ -328,7 +328,7 @@ body {
 @media (max-width: 767px) {
   :root {
     --sidebar-width: 0px;
-    --controls-height: 56px;
+    --controls-height: 96px;
   }
 
   #sidebar {
@@ -345,7 +345,7 @@ body {
 
   #main {
     grid-template-columns: 1fr;
-    grid-template-rows: var(--panel-header-h) 1fr var(--resize-handle-w) var(--panel-header-h) 1fr auto;
+    grid-template-rows: var(--panel-header-h) 55fr 20px var(--panel-header-h) 45fr auto;
     grid-template-areas:
       "fpv-header"
       "fpv-canvas"
@@ -356,11 +356,45 @@ body {
   }
 
   #move-info {
-    max-height: 100px;
-    padding: var(--space-3) var(--space-4);
+    max-height: 44px;
+    padding: 0 var(--space-4);
+    overflow: hidden;
+    align-items: center;
+    grid-template-rows: auto;
   }
 
-  .move-info-tips { display: none; }
+  .move-info-desc,
+  .move-info-tips,
+  .move-info-right { display: none; }
+
+  .move-info-name {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Resize handle: 20px tall with grip indicator */
+  #resize-handle {
+    width: 100%;
+    height: 20px;
+    cursor: row-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #resize-handle::after {
+    content: '';
+    width: 32px;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 -5px 0 rgba(255, 255, 255, 0.25), 0 5px 0 rgba(255, 255, 255, 0.25);
+    left: auto;
+    inset: auto;
+    position: static;
+  }
 
   /* Floating move selector button */
   #mobile-moves-btn {

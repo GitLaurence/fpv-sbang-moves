@@ -396,7 +396,7 @@ body.step-mode #stick-wrap {
   bottom: 0;
   left: 0;
   right: 0;
-  max-height: 80dvh;
+  max-height: 90dvh;
   background: var(--bg-surface);
   border-top: var(--border-accent);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -438,8 +438,8 @@ body.step-mode #stick-wrap {
 }
 
 .mobile-sheet-close {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -472,11 +472,14 @@ body.step-mode #stick-wrap {
   overflow: hidden;
   margin-bottom: var(--space-2);
   cursor: pointer;
+  min-height: 52px;
   transition:
     background  var(--dur-fast) var(--ease-snap),
     border-color var(--dur-fast) var(--ease-snap);
   -webkit-user-select: none;
   user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-move-row:active,

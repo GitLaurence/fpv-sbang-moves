@@ -21,11 +21,15 @@ button {
   cursor: pointer;
   font: inherit;
   color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 input {
   font: inherit;
   color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 ul, ol {

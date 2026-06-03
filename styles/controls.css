@@ -352,9 +352,91 @@
   background: rgba(0, 245, 212, 0.06);
 }
 
-/* ── Mobile — compact controls ────────────────────────────── */
+/* ── Mobile — 2-row controls layout ──────────────────────── */
 @media (max-width: 767px) {
+  /* Controls bar: wrap into 2 rows */
+  #controls {
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 0;
+    padding: 6px var(--space-3) 4px;
+    align-items: center;
+  }
+
+  /* All dividers hidden */
   .ctrl-divider { display: none; }
-  .speed-pill:not(.active) { display: none; }
-  .time-total, .time-sep { display: none; }
+
+  /* Scrubber moves to row 2: full width */
+  .scrubber-wrap {
+    order: 20;
+    width: 100%;
+    flex: none;
+    padding: 4px var(--space-2) 0;
+  }
+
+  /* Scrubber track: taller */
+  .scrubber-track {
+    height: 6px;
+  }
+
+  /* Scrubber thumb: bigger for touch */
+  #scrubber::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+  }
+  #scrubber::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Transport buttons: 40×40px touch targets */
+  .ctrl-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Play button: prominent 48×48px */
+  #btn-play {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  #btn-play svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Speed pills: show all 4, compact */
+  .speed-pill {
+    display: flex !important;
+    padding: 4px 7px;
+    font-size: 10px;
+    min-height: 32px;
+    min-width: 32px;
+  }
+
+  /* Loop and Mute: 40×40px icon toggles */
+  .ctrl-toggle {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Hide advanced/theme controls on mobile */
+  .theme-btn { display: none; }
+  #btn-step  { display: none; }
+  #btn-ghost { display: none; }
+
+  /* Time: show current only, smaller font */
+  .time-total,
+  .time-sep { display: none; }
+
+  #time-current {
+    font-size: 11px;
+  }
 }
