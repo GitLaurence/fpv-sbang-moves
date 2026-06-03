@@ -4,6 +4,8 @@ export default {
   level: 'advanced',
   difficulty: 4,
   durationSec: 7.0,
+  youtubeId:    'n6RX8iI6gcQ',
+  youtubeStart: 0,
   description: 'Figure-8 na may inverted na bahagi sa bawat kanto. Combination ng dalawang Split-S na magkasalungat ang direksyon — kailangan ng consistent na timing.',
   tips: [
     'Mag-isip ng dalawang Split-S — isa sa kaliwa, isa sa kanan, magkasalungat ang roll',

@@ -4,6 +4,8 @@ export default {
   level: 'advanced',
   difficulty: 4,
   durationSec: 6.0,
+  youtubeId:    'ysb5miD3ZdU',
+  youtubeStart: 0,
   description: 'Inverted orbit — lumipad nang baligtad sa paligid ng isang bagay (puno, poste) habang nakasentro ito sa camera. Kailangan ng lahat ng apat na axis nang sabay-sabay. Tinatawag ding "Cyclone" o "Inverted Orbit".',
   tips: [
     'Magsanay ng inverted hover nang 5+ segundo muna — kung hindi kaya, magiging crash ito',

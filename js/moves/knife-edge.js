@@ -4,6 +4,8 @@ export default {
   level: 'intermediate',
   difficulty: 3,
   durationSec: 4.0,
+  youtubeId:    'FamqCNGrq2M',
+  youtubeStart: 0,
   description: '90° roll na pinananatili sa axis. Mukhang parang lumilipad ka sa gilid ng eroplano. Kailangan ng yaw para mapanatili ang heading.',
   tips: [
     'Mag-roll ng exactly 90° — huwag labis, huwag kulang sa input',

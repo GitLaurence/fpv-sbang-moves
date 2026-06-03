@@ -4,6 +4,8 @@ export default {
   level: 'intermediate',
   difficulty: 3,
   durationSec: 4.5,
+  youtubeId:    'j-fJIPVe3fs',
+  youtubeStart: 0,
   description: 'Buong 360° vertical loop. Ang susi: full throttle sa entry, CHOP halos zero sa tuktok (inverted), agad na punch pabalik sa ibaba. Hold full pitch forward sa buong loop.',
   tips: [
     'Mag-enter nang mabilis — 80-100% throttle bago mag-pitch forward',

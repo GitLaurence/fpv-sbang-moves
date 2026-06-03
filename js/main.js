@@ -8,6 +8,7 @@ import { ShortcutsOverlay }    from './ui/shortcuts.js';
 import { PhaseTracker }        from './ui/phase-tracker.js';
 import { MobileSheet }         from './ui/mobile-sheet.js';
 import { AudioEngine }         from './audio.js';
+import { YouTubePlayer }       from './renderers/youtube-player.js';
 
 // ── DOM refs ───────────────────────────────────────────────
 const app           = document.getElementById('app');
@@ -47,6 +48,12 @@ const stickRenderer = new StickCamRenderer(stickCanvas);
 const fpvCanvas     = document.getElementById('fpv-canvas');
 const osdCanvas     = document.getElementById('osd-canvas');
 const fpvRenderer   = new FpvCamRenderer(fpvCanvas, osdCanvas);
+const ytContainer   = document.getElementById('yt-container');
+const ytBadge       = document.getElementById('yt-badge');
+const fpvBadge      = document.getElementById('fpv-badge');
+const ytPlayer      = new YouTubePlayer('yt-player');
+
+let _ytActive = false;
 
 // ── UI Modules ─────────────────────────────────────────────
 const infoPanel    = new InfoPanel();
@@ -82,6 +89,7 @@ const engine = new PlaybackEngine(
     updatePlayBtn();
     pulseScrubberEnd();
     audio.silence();
+    if (_ytActive) ytPlayer.pause();
     if (engine.isLooping && ghostEnabled) {
       stickRenderer.commitRecording();
       stickRenderer.startRecording();
@@ -198,6 +206,16 @@ function loadMove(move) {
   stickRenderer.clearGhost();
   fpvRenderer.resetSim();
 
+  // Switch between YouTube video and canvas FPV renderer
+  _ytActive = !!move.youtubeId;
+  fpvCanvas.style.display    = _ytActive ? 'none' : '';
+  ytContainer.style.display  = _ytActive ? '' : 'none';
+  ytBadge.style.display      = _ytActive ? '' : 'none';
+  fpvBadge.style.display     = _ytActive ? 'none' : '';
+  if (_ytActive) {
+    ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);
+  }
+
   // Load into engine (seeks to 0 and emits first frame)
   engine.load(move);
   phaseTracker.load(move);
@@ -273,8 +291,10 @@ btnPlay.addEventListener('click', () => {
 
   if (!engine.isPlaying) {
     audio.silence();
-  } else if (ghostEnabled) {
-    stickRenderer.startRecording();
+    if (_ytActive) ytPlayer.pause();
+  } else {
+    if (_ytActive) ytPlayer.play(engine.time);
+    if (ghostEnabled) stickRenderer.startRecording();
   }
 
   btnPlay.classList.remove('ripple');
@@ -323,7 +343,9 @@ btnStep.addEventListener('click', () => {
 // Speed pills
 speedPills.forEach(pill => {
   pill.addEventListener('click', () => {
-    engine.setSpeed(parseFloat(pill.dataset.speed));
+    const spd = parseFloat(pill.dataset.speed);
+    engine.setSpeed(spd);
+    if (_ytActive) ytPlayer.setRate(spd);
     speedPills.forEach(p => {
       p.classList.toggle('active', p === pill);
       p.setAttribute('aria-pressed', String(p === pill));
@@ -340,11 +362,13 @@ scrubber.addEventListener('mousedown', () => {
   scrubbing = true;
   engine.pause();
   updatePlayBtn();
+  if (_ytActive) ytPlayer.pause();
 });
 
 scrubber.addEventListener('input', () => {
   if (!engine.move) return;
   engine.seekFraction(scrubber.value / 1000);
+  if (_ytActive) ytPlayer.seek(engine.time);
 });
 
 document.addEventListener('mouseup', () => { scrubbing = false; });
@@ -470,14 +494,17 @@ document.addEventListener('keydown', e => {
 
 // ── Canvas Resize Observer ─────────────────────────────────
 const ro = new ResizeObserver(() => {
-  ['fpv-canvas', 'osd-canvas', 'stick-canvas'].forEach(id => {
+  const ids = _ytActive
+    ? ['osd-canvas', 'stick-canvas']
+    : ['fpv-canvas', 'osd-canvas', 'stick-canvas'];
+  ids.forEach(id => {
     const canvas = document.getElementById(id);
     if (!canvas) return;
     canvas.width  = canvas.offsetWidth  * devicePixelRatio;
     canvas.height = canvas.offsetHeight * devicePixelRatio;
   });
   stickRenderer.resize();
-  fpvRenderer.resize();
+  if (!_ytActive) fpvRenderer.resize();
   if (engine.move) engine.seek(engine.time);
 });
 

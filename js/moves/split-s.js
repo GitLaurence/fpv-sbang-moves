@@ -4,6 +4,8 @@ export default {
   level: 'beginner',
   difficulty: 2,
   durationSec: 3.5,
+  youtubeId:    'pL7sj1h3SRs',
+  youtubeStart: 60,
   description: 'Half-roll papunta sa inverted, tapos mag-pull para sa pababang half-loop. Nagbabago ng direksyon habang bumababa ng altitude — kailangan ng 15-20m clearance.',
   tips: [
     'CUT ang throttle sa roll phase (30%) — mapipigilan ang pag-climb habang nag-iinverted',

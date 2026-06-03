@@ -4,6 +4,8 @@ export default {
   level: 'pro',
   difficulty: 5,
   durationSec: 5.0,
+  youtubeId:    'CK4AQszHHfI',
+  youtubeStart: 0,
   description: 'Signature combo ng Sbang style (ni Farouk FPV): Boost → Roll inverted → Split-S pull-through → Juicy Flick → Yaw accent. Explosive at snappy ang bawat input — ang "dead stop" sa pagitan ay trademark ng style.',
   tips: [
     'Ang bawat transition ay may "dead stop" — bumalik ang stick sa center bago ang susunod na input',

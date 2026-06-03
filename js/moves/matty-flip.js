@@ -4,6 +4,8 @@ export default {
   level: 'intermediate',
   difficulty: 3,
   durationSec: 3.0,
+  youtubeId:    'mZVjPSQHm9Y',
+  youtubeStart: 0,
   description: 'Backflip na sabay may full yaw spin — dalawang axis nang sabay-sabay. Ginawa ni Canadian pilot Matt Sherwood. Kailangan munang marunong ng malinis na backflip at yaw spin bago subukan.',
   tips: [
     'Ang pitch-back at yaw ay SABAY — hindi sunud-sunod, kundi iisang input na parehong full deflection',
