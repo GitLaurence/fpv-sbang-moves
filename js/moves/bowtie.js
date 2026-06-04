@@ -1,53 +1,43 @@
 export default {
-  id: 'bowtie',
-  name: 'Bowtie',
-  level: 'advanced',
-  difficulty: 4,
-  durationSec: 7.0,
-  youtubeId:    null,
+  id: 'yaw-spin',
+  name: '360° Yaw Spin',
+  level: 'intermediate',
+  difficulty: 2,
+  durationSec: 3.5,
+  youtubeId:    'xB8kZMV1HGY',
   youtubeStart: 0,
-  description: 'Figure-8 na may inverted na bahagi sa bawat kanto. Combination ng dalawang Split-S na magkasalungat ang direksyon — kailangan ng consistent na timing.',
+  description: 'Buong 360° flat spin gamit ang yaw — ang drone ay paikot-ikot habang napapanatili ang altitude at forward momentum. Pangunahing trick para matuto ng yaw authority at throttle management.',
   tips: [
-    'Mag-isip ng dalawang Split-S — isa sa kaliwa, isa sa kanan, magkasalungat ang roll',
-    'I-time ang bawat roll entry para consistent ang shape ng figure-8',
-    'Ang exit ng unang half-loop ay ang entry ng pangalawa — huwag mag-pause sa gitna',
+    'Mag-maintain ng constant throttle sa buong spin — ang altitude ay dapat hindi magbago',
+    'Mag-ease ng pitch pasulong bago at pagkatapos ng spin para mapanatili ang forward momentum',
+    'Full yaw input para sa mabilis at malinis na spin — huwag partial',
   ],
   phases: [
-    { t: 0.0, label: 'Entry' },
-    { t: 0.5, label: 'Roll R' },
-    { t: 1.1, label: 'Pull 1' },
-    { t: 3.0, label: 'Mid' },
-    { t: 3.5, label: 'Roll L' },
-    { t: 4.1, label: 'Pull 2' },
-    { t: 6.2, label: 'Exit' },
+    { t: 0.0, label: 'Approach' },
+    { t: 0.5, label: 'Begin Yaw' },
+    { t: 1.0, label: '¼ Spin' },
+    { t: 1.5, label: '½ Spin' },
+    { t: 2.0, label: '¾ Spin' },
+    { t: 2.5, label: 'Complete' },
+    { t: 3.0, label: 'Exit' },
   ],
   keyframes: [
-    // Entry — build speed
-    { t: 0.0,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 0.3,  throttle: 0.67, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    // First roll — right
-    { t: 0.5,  throttle: 0.67, yaw:  0.00, pitch:  0.00, roll:  1.00 },
-    { t: 0.8,  throttle: 0.66, yaw:  0.00, pitch:  0.00, roll:  1.00 },
-    { t: 1.0,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.30 },
-    // Inverted — begin first pull
-    { t: 1.1,  throttle: 0.43, yaw:  0.00, pitch: -1.00, roll:  0.00 },
-    { t: 1.6,  throttle: 0.46, yaw:  0.00, pitch: -0.95, roll:  0.00 },
-    { t: 2.2,  throttle: 0.54, yaw:  0.00, pitch: -0.65, roll:  0.00 },
-    // Halfway through figure-8 — level briefly
-    { t: 2.7,  throttle: 0.62, yaw:  0.00, pitch: -0.20, roll:  0.00 },
-    { t: 3.0,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 3.2,  throttle: 0.67, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    // Second roll — opposite direction (left)
-    { t: 3.5,  throttle: 0.67, yaw:  0.00, pitch:  0.00, roll: -1.00 },
-    { t: 3.8,  throttle: 0.66, yaw:  0.00, pitch:  0.00, roll: -1.00 },
-    { t: 4.0,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll: -0.30 },
-    // Inverted — begin second pull
-    { t: 4.1,  throttle: 0.43, yaw:  0.00, pitch: -1.00, roll:  0.00 },
-    { t: 4.6,  throttle: 0.46, yaw:  0.00, pitch: -0.95, roll:  0.00 },
-    { t: 5.2,  throttle: 0.54, yaw:  0.00, pitch: -0.65, roll:  0.00 },
-    // Second exit
-    { t: 5.7,  throttle: 0.62, yaw:  0.00, pitch: -0.20, roll:  0.00 },
-    { t: 6.2,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 7.0,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // Approach — level forward flight
+    { t: 0.0,  throttle: 0.65, yaw:  0.00, pitch:  0.05, roll:  0.00 },
+    { t: 0.3,  throttle: 0.65, yaw:  0.00, pitch:  0.05, roll:  0.00 },
+    // Begin full yaw spin — small pitch back to reduce forward drift
+    { t: 0.5,  throttle: 0.65, yaw:  1.00, pitch: -0.08, roll:  0.00 },
+    { t: 0.85, throttle: 0.65, yaw:  1.00, pitch: -0.08, roll:  0.00 },
+    // Through the spin — maintain yaw and altitude
+    { t: 1.2,  throttle: 0.66, yaw:  1.00, pitch: -0.05, roll:  0.00 },
+    { t: 1.55, throttle: 0.65, yaw:  1.00, pitch: -0.05, roll:  0.00 },
+    { t: 1.9,  throttle: 0.66, yaw:  1.00, pitch: -0.08, roll:  0.00 },
+    { t: 2.2,  throttle: 0.65, yaw:  1.00, pitch: -0.05, roll:  0.00 },
+    // Completing the 360° — ease yaw out
+    { t: 2.5,  throttle: 0.65, yaw:  0.40, pitch:  0.00, roll:  0.00 },
+    { t: 2.7,  throttle: 0.65, yaw:  0.00, pitch:  0.05, roll:  0.00 },
+    // Exit — resume forward flight
+    { t: 3.0,  throttle: 0.65, yaw:  0.00, pitch:  0.05, roll:  0.00 },
+    { t: 3.5,  throttle: 0.65, yaw:  0.00, pitch:  0.05, roll:  0.00 },
   ],
 };
