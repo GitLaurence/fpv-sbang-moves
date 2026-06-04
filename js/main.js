@@ -55,6 +55,7 @@ const ytPlayer      = new YouTubePlayer('yt-player');
 
 let _ytActive      = false;
 let _ytBufferPause = false; // engine was paused because YT was buffering
+let _ytWaitPlay    = false; // YT play requested; engine held until PLAYING fires
 
 // ── UI Modules ─────────────────────────────────────────────
 const infoPanel    = new InfoPanel();
@@ -78,16 +79,16 @@ let ghostEnabled = false;
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
   (frame) => {
-    // When YouTube is active and actually playing, use YT's clock as the
-    // authoritative time source. Only resync during active playback to
-    // avoid seekTo spam while paused or buffering.
-    if (_ytActive && engine.isPlaying) {
+    // YT clock is authoritative: correct engine drift every frame while playing.
+    // The engine was started only after YT fired PLAYING (see state handler),
+    // so both clocks are already aligned; this just catches any ongoing drift.
+    if (_ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay) {
       const ytState = ytPlayer.getState();
       if (ytState === 1 /* PLAYING */) {
         const ytTime = ytPlayer.currentTime();
-        if (ytTime !== null && Math.abs(ytTime - frame.t) > 0.08) {
+        if (ytTime !== null && Math.abs(ytTime - frame.t) > 0.06) {
           engine.seek(Math.max(0, ytTime));
-          return; // seek will trigger a fresh frame
+          return;
         }
       }
     }
@@ -117,29 +118,41 @@ const engine = new PlaybackEngine(
 // YT.PlayerState: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
 ytPlayer.onStateChange((state) => {
   if (!_ytActive) return;
-  if (state === 3 /* BUFFERING */ && engine.isPlaying) {
-    // Pause the engine while video catches up; show indicator
-    engine.pause();
-    audio.silence();
-    updatePlayBtn();
-    _ytBufferPause = true;
+
+  if (state === 1 /* PLAYING */) {
+    ytBadge.textContent = '▶ YT VIDEO';
+
+    if (_ytWaitPlay || _ytBufferPause) {
+      // YT just confirmed it's playing — now sync engine to YT's exact time
+      // and start the engine. This guarantees zero clock skew at launch.
+      _ytWaitPlay    = false;
+      _ytBufferPause = false;
+      const ytTime = ytPlayer.currentTime();
+      engine.seek(Math.max(0, ytTime ?? 0));
+      engine.play();
+      updatePlayBtn();
+      if (ghostEnabled) stickRenderer.startRecording();
+    }
+
+  } else if (state === 3 /* BUFFERING */) {
     ytBadge.textContent = '⏳ LOADING…';
-  } else if (state === 1 /* PLAYING */ && _ytBufferPause) {
-    // Video is playing again — resync engine to YT and resume
-    _ytBufferPause = false;
+    if (engine.isPlaying) {
+      // Mid-playback stall — pause engine until video catches up
+      engine.pause();
+      audio.silence();
+      updatePlayBtn();
+      _ytBufferPause = true;
+    }
+
+  } else if (state === 0 /* ENDED */) {
     ytBadge.textContent = '▶ YT VIDEO';
-    const ytTime = ytPlayer.currentTime();
-    if (ytTime !== null) engine.seek(Math.max(0, ytTime));
-    engine.play();
-    updatePlayBtn();
-    if (ghostEnabled) stickRenderer.startRecording();
-  } else if (state === 0 /* ENDED */ && engine.isPlaying) {
-    // YT ended (e.g. move duration longer than clip) — just stop
-    engine.pause();
-    audio.silence();
-    updatePlayBtn();
+    _ytWaitPlay    = false;
     _ytBufferPause = false;
-    ytBadge.textContent = '▶ YT VIDEO';
+    if (engine.isPlaying) {
+      engine.pause();
+      audio.silence();
+      updatePlayBtn();
+    }
   }
 });
 
@@ -253,6 +266,7 @@ function loadMove(move) {
   // Switch between YouTube video and canvas FPV renderer
   _ytActive      = !!move.youtubeId;
   _ytBufferPause = false;
+  _ytWaitPlay    = false;
   fpvCanvas.style.display    = _ytActive ? 'none' : '';
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
@@ -332,15 +346,30 @@ function buildTicks(move) {
 btnPlay.addEventListener('click', () => {
   if (!engine.move) return;
   ensureAudio();
-  engine.toggle();
-  updatePlayBtn();
 
-  if (!engine.isPlaying) {
-    audio.silence();
-    if (_ytActive) ytPlayer.pause();
+  if (_ytActive) {
+    if (engine.isPlaying) {
+      // Pause both immediately
+      engine.pause();
+      ytPlayer.pause();
+      audio.silence();
+      _ytWaitPlay    = false;
+      _ytBufferPause = false;
+      updatePlayBtn();
+    } else {
+      // Tell YT to play — engine starts only when PLAYING state fires
+      _ytWaitPlay = true;
+      ytPlayer.play(engine.time);
+      // updatePlayBtn will be called from the state handler
+    }
   } else {
-    if (_ytActive) ytPlayer.play(engine.time);
-    if (ghostEnabled) stickRenderer.startRecording();
+    engine.toggle();
+    updatePlayBtn();
+    if (!engine.isPlaying) {
+      audio.silence();
+    } else if (ghostEnabled) {
+      stickRenderer.startRecording();
+    }
   }
 
   btnPlay.classList.remove('ripple');
