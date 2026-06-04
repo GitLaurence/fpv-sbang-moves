@@ -1,5 +1,5 @@
 export default {
-  id: 'yaw-spin',
+  id: 'bowtie',
   name: '360° Yaw Spin',
   level: 'intermediate',
   difficulty: 2,
