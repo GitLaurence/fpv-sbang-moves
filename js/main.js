@@ -40,6 +40,7 @@ const moveInfoEl    = document.getElementById('move-info');
 const resizeHandle  = document.getElementById('resize-handle');
 const mainEl        = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
+const srStatus      = document.getElementById('sr-status');
 
 // ── Renderers ──────────────────────────────────────────────
 const stickCanvas   = document.getElementById('stick-canvas');
@@ -80,7 +81,7 @@ let ghostEnabled = false;
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
   (frame) => {
-    if (_ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay) {
+    if (!scrubbing && _ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay) {
       const ytState = ytPlayer.getState();
       if (ytState === 1 /* PLAYING */) {
         const ytTime = ytPlayer.currentTime();
@@ -104,7 +105,7 @@ const engine = new PlaybackEngine(
     fpvRenderer.render(frame);
     phaseTracker.update(frame.t);
     syncScrubber();
-    audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
+    if (!_ytActive) audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
     audio.resume();
   },
   // onEnd — called when engine reaches durationSec (loop=false path)
@@ -114,14 +115,17 @@ const engine = new PlaybackEngine(
     audio.silence();
     if (_ytActive) ytPlayer.pause();
     _ytLastEngineT = -1;
-    if (engine.isLooping && ghostEnabled) {
-      stickRenderer.commitRecording();
-      stickRenderer.startRecording();
-    } else if (ghostEnabled) {
+    if (ghostEnabled) {
       stickRenderer.commitRecording();
     }
   }
 );
+
+// A11Y-01 / UX-01: show badge when YT can't embed the video
+ytPlayer.onError(() => {
+  if (!_ytActive) return;
+  ytBadge.textContent = '⚠ VIDEO N/A';
+});
 
 // ── YouTube state handler ──────────────────────────────────
 // YT.PlayerState: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
@@ -189,6 +193,8 @@ function updatePlayBtn() {
     ? '<use href="#icon-pause"/>'
     : '<use href="#icon-play"/>';
   btnPlay.setAttribute('aria-label', engine.isPlaying ? 'I-pause' : 'I-play');
+  // A11Y-06: announce state to screen readers
+  if (srStatus) srStatus.textContent = engine.isPlaying ? 'Nagpe-play' : 'Naka-pause';
 }
 
 function syncScrubber() {
@@ -276,11 +282,8 @@ function loadMove(move) {
   const activeCard = document.querySelector(`.move-card[data-id="${move.id}"]`);
   if (activeCard) activeCard.classList.add('active');
 
-  // Reset renderers for fresh start
-  stickRenderer._leftTrail  = [];
-  stickRenderer._rightTrail = [];
-  stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
-  stickRenderer.clearGhost();
+  // Reset renderers for fresh start (BUG-06: use public API)
+  stickRenderer.reset();
   fpvRenderer.resetSim();
 
   // Switch between YouTube video and canvas FPV renderer
@@ -294,6 +297,7 @@ function loadMove(move) {
   ytBadge.textContent        = '▶ YT VIDEO';
   fpvBadge.style.display     = _ytActive ? 'none' : '';
   if (_ytActive) {
+    ytBadge.textContent = '⏳ LOADING…';
     ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);
   }
 
@@ -428,7 +432,10 @@ btnGhost.addEventListener('click', () => {
   }
 });
 
-btnSkipStart.addEventListener('click', () => engine.skipToStart());
+btnSkipStart.addEventListener('click', () => {
+  engine.skipToStart();
+  stickRenderer.clearGhost(); // UX-02: stale ghost trail after reset
+});
 btnSkipEnd.addEventListener('click',   () => engine.skipToEnd());
 btnStepBack.addEventListener('click',  () => engine.stepBack());
 btnStepFwd.addEventListener('click',   () => engine.stepForward());
@@ -491,7 +498,7 @@ scrubber.addEventListener('mousemove', e => {
   scrubberTip.style.left  = `${pct * 100}%`;
 });
 
-// Theme switcher
+// Theme switcher — refresh cached theme colors after switch
 themeBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     document.documentElement.dataset.theme = btn.dataset.theme;
@@ -499,6 +506,7 @@ themeBtns.forEach(btn => {
       b.classList.toggle('active', b === btn);
       b.setAttribute('aria-pressed', String(b === btn));
     });
+    stickRenderer.cacheTheme(); // PERF-01: update cached bg color
   });
 });
 
@@ -590,27 +598,28 @@ document.addEventListener('keydown', e => {
   });
 
   resizeHandle.addEventListener('keydown', e => {
-    const style  = getComputedStyle(mainEl);
-    const curPct = parseFloat(style.gridTemplateColumns);
-    const step   = 5;
-    if (e.key === 'ArrowLeft')
-      mainEl.style.gridTemplateColumns = `${Math.max(20, curPct - step)}% 4px 1fr`;
-    if (e.key === 'ArrowRight')
-      mainEl.style.gridTemplateColumns = `${Math.min(80, curPct + step)}% 4px 1fr`;
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const rect   = mainEl.getBoundingClientRect();
+    const cols   = getComputedStyle(mainEl).gridTemplateColumns.split(' ');
+    const curPct = (parseFloat(cols[0]) / rect.width) * 100;
+    const newPct = Math.max(20, Math.min(80, curPct + (e.key === 'ArrowLeft' ? -5 : 5)));
+    mainEl.style.gridTemplateColumns = `${newPct}% 4px 1fr`;
+    stickRenderer.resize();
+    fpvRenderer.resize();
   });
 })();
 
 // ── Canvas Resize Observer ─────────────────────────────────
+// PERF-03: use refs cached at the top of the file instead of re-querying DOM
 const ro = new ResizeObserver(() => {
-  const ids = _ytActive
-    ? ['osd-canvas', 'stick-canvas']
-    : ['fpv-canvas', 'osd-canvas', 'stick-canvas'];
-  ids.forEach(id => {
-    const canvas = document.getElementById(id);
-    if (!canvas) return;
+  const canvases = _ytActive
+    ? [osdCanvas, stickCanvas]
+    : [fpvCanvas, osdCanvas, stickCanvas];
+  for (const canvas of canvases) {
     canvas.width  = canvas.offsetWidth  * devicePixelRatio;
     canvas.height = canvas.offsetHeight * devicePixelRatio;
-  });
+  }
   stickRenderer.resize();
   if (!_ytActive) fpvRenderer.resize();
   if (engine.move) engine.seek(engine.time);
@@ -633,6 +642,9 @@ function dismissIntro() {
 
 requestAnimationFrame(() => { introBar.style.width = '100%'; });
 setTimeout(dismissIntro, 1400);
+
+// Cache theme-dependent colors in renderers
+stickRenderer.cacheTheme();
 
 // Build sidebar first so filter + sheet can reference its cards
 buildSidebar();

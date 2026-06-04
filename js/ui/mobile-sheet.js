@@ -4,16 +4,20 @@
 
 export class MobileSheet {
   constructor(onMoveSelect) {
-    this._onSelect = onMoveSelect;
-    this._sheet    = null;
-    this._backdrop = null;
+    this._onSelect    = onMoveSelect;
+    this._sheet       = null;
+    this._backdrop    = null;
+    this._triggerBtn  = null;
+    this._opener      = null; // A11Y-04: element to restore focus to on close
     this._build();
   }
 
   open() {
+    this._opener = document.activeElement;
     this._sync();
     this._backdrop.classList.add('visible');
     this._sheet.classList.add('open');
+    this._triggerBtn?.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
     this._sheet.querySelector('.mobile-sheet-list')?.focus();
   }
@@ -21,7 +25,11 @@ export class MobileSheet {
   close() {
     this._backdrop.classList.remove('visible');
     this._sheet.classList.remove('open');
+    this._triggerBtn?.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
+    // A11Y-04: restore focus to the element that opened the sheet
+    this._opener?.focus();
+    this._opener = null;
   }
 
   toggle() {
@@ -74,9 +82,9 @@ export class MobileSheet {
     document.body.appendChild(sheet);
     this._sheet = sheet;
 
-    // Wire mobile button
-    document.getElementById('mobile-moves-btn')
-      ?.addEventListener('click', () => this.toggle());
+    // Wire mobile button — store ref for aria-expanded updates (BUG-08)
+    this._triggerBtn = document.getElementById('mobile-moves-btn');
+    this._triggerBtn?.addEventListener('click', () => this.toggle());
 
     // Escape to close
     document.addEventListener('keydown', e => {

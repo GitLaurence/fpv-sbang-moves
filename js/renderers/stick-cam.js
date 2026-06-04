@@ -1,6 +1,9 @@
 // ── Constants ──────────────────────────────────────────────
-const TRAIL_LENGTH = 28;   // number of past positions kept
-const TRAIL_DECAY  = 0.88; // alpha multiplier per step
+const TRAIL_LENGTH = 28;
+const TRAIL_DECAY  = 0.88;
+
+// BUG-06/PERF-04: module-scope map avoids per-frame object allocation
+const CH_NAME = { t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' };
 
 const CHANNEL_COLORS = {
   throttle: { hex: '#f7b731', rgb: '247,183,49'  },
@@ -14,6 +17,9 @@ export class StickCamRenderer {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx    = canvas.getContext('2d');
+
+    // PERF-01: cached background color, refreshed by cacheTheme()
+    this._bgColor = '#0b0d12';
 
     // Trail history: [{x,y}, ...]
     this._leftTrail  = [];
@@ -35,6 +41,12 @@ export class StickCamRenderer {
 
     // Build meter DOM once
     this._buildMeters();
+  }
+
+  // PERF-01: call on theme change to avoid getComputedStyle every frame
+  cacheTheme() {
+    this._bgColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
   }
 
   // ── Ghost Trail API ───────────────────────────────────────
@@ -63,6 +75,14 @@ export class StickCamRenderer {
     this._recording  = false;
     this._recLeft    = [];
     this._recRight   = [];
+  }
+
+  // BUG-06: public reset so loadMove doesn't need to touch private fields
+  reset() {
+    this._leftTrail  = [];
+    this._rightTrail = [];
+    this._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+    this.clearGhost();
   }
 
   // ── Public ────────────────────────────────────────────────
@@ -125,9 +145,7 @@ export class StickCamRenderer {
 
     ctx.clearRect(0, 0, W, canvas.height);
 
-    // Panel background
-    ctx.fillStyle = getComputedStyle(document.documentElement)
-      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
+    ctx.fillStyle = this._bgColor;
     ctx.fillRect(0, 0, W, canvas.height);
 
     const halfW   = W / 2;
@@ -378,7 +396,7 @@ export class StickCamRenderer {
 
       val.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
       val.style.color = Math.abs(v) > 0.9
-        ? CHANNEL_COLORS[{ t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' }[key]].hex
+        ? CHANNEL_COLORS[CH_NAME[key]].hex
         : '';
     }
   }

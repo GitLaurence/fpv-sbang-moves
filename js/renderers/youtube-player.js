@@ -11,6 +11,7 @@ export class YouTubePlayer {
     this._videoId     = null;  // currently loaded video ID
     this._pending     = null;  // load request queued before API was ready
     this._onState     = null;  // external state-change callback
+    this._onErr       = null;  // external error callback
     this._loadApi();
   }
 
@@ -68,6 +69,9 @@ export class YouTubePlayer {
   /** Register a callback fired on every YT state change — cb(ytPlayerState) */
   onStateChange(cb) { this._onState = cb; }
 
+  /** Register a callback fired when the player emits an error — cb(errorCode) */
+  onError(cb) { this._onErr = cb; }
+
   // ── Private ───────────────────────────────────────────────
 
   _loadApi() {
@@ -110,9 +114,8 @@ export class YouTubePlayer {
           if (this._onState) this._onState(ev.data);
         },
         onError: (ev) => {
-          // On error (150=embed-blocked, 101=not found, 5=HTML5 error) notify
-          // the state handler with a synthetic ENDED(0) so the UI doesn't hang.
           console.warn('[YT] player error', ev.data);
+          if (this._onErr) this._onErr(ev.data);
           if (this._onState) this._onState(0);
         },
       },

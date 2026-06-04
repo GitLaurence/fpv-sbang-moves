@@ -25,12 +25,12 @@ export default {
     { t: 0.3,  throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  0.00 },
     // CHOP throttle — instant zero
     { t: 0.4,  throttle: 0.05, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 0.6,  throttle: 0.04, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 0.6,  throttle: 0.00, yaw:  0.00, pitch:  0.00, roll:  0.00 },
     // Free-fall — all sticks centered, throttle near zero
-    { t: 0.9,  throttle: 0.04, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 1.3,  throttle: 0.04, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 1.7,  throttle: 0.04, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 2.1,  throttle: 0.04, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 0.9,  throttle: 0.00, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 1.3,  throttle: 0.00, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 1.7,  throttle: 0.00, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    { t: 2.1,  throttle: 0.00, yaw:  0.00, pitch:  0.00, roll:  0.00 },
     // CATCH — ramp throttle back up to arrest the drop
     { t: 2.2,  throttle: 0.35, yaw:  0.00, pitch:  0.00, roll:  0.00 },
     { t: 2.4,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },
