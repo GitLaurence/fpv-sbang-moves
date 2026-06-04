@@ -371,13 +371,15 @@
     order: 20;
     width: 100%;
     flex: none;
-    padding: 4px var(--space-2) 0;
+    padding: 2px var(--space-2) 0;
+    padding-top: 2px; /* override desktop phase-label room */
   }
 
-  /* Scrubber track: taller */
-  .scrubber-track {
-    height: 6px;
-  }
+  /* Hide phase labels on mobile — too small to read */
+  .scrubber-phase { display: none; }
+
+  /* Scrubber track: 6px for easier touch targeting */
+  #scrubber { height: 6px; }
 
   /* Scrubber thumb: bigger for touch */
   #scrubber::-webkit-slider-thumb {
