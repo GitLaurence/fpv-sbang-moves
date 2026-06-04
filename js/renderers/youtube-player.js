@@ -1,24 +1,25 @@
 // ── YouTubePlayer ──────────────────────────────────────────
 // Wraps the YouTube IFrame API for move-synced video playback.
-// Lazy-loads the YT script on first use. The player sits inside
-// #yt-container which overlays the FPV panel.
+// Lazy-loads the YT script on first use.
 
 export class YouTubePlayer {
   constructor(elementId) {
-    this._elemId   = elementId;
-    this._player   = null;
-    this._ready    = false;
-    this._offset   = 0; // seconds into YT video where move starts
-    this._pending  = null;
-    this._onState  = null; // external state-change callback
+    this._elemId      = elementId;
+    this._player      = null;
+    this._ready       = false;
+    this._offset      = 0;     // seconds into YT video where the move starts
+    this._videoId     = null;  // currently loaded video ID
+    this._pending     = null;  // load request queued before API was ready
+    this._onState     = null;  // external state-change callback
     this._loadApi();
   }
 
   // ── Public API ────────────────────────────────────────────
 
-  /** Load a move's video — cues without auto-playing */
+  /** Cue a move's video without auto-playing */
   load(videoId, offsetSeconds = 0) {
-    this._offset = offsetSeconds;
+    this._offset  = offsetSeconds;
+    this._videoId = videoId;
     if (!this._ready) {
       this._pending = { videoId, offsetSeconds };
       return;
@@ -27,14 +28,15 @@ export class YouTubePlayer {
   }
 
   play(engineTime = 0) {
-    if (!this._ready) return;
+    if (!this._ready || !this._videoId) return;
     this._player.seekTo(this._offset + engineTime, true);
     this._player.playVideo();
   }
 
   pause() {
     if (!this._ready) return;
-    this._player.pauseVideo();
+    // pauseVideo is safe to call in any player state
+    try { this._player.pauseVideo(); } catch (_) {}
   }
 
   seek(engineTime) {
@@ -44,7 +46,6 @@ export class YouTubePlayer {
 
   setRate(rate) {
     if (!this._ready) return;
-    // YT only supports specific rates: 0.25, 0.5, 1, 1.5, 2
     const allowed = [0.25, 0.5, 1, 1.5, 2];
     const clamped = allowed.reduce((prev, cur) =>
       Math.abs(cur - rate) < Math.abs(prev - rate) ? cur : prev
@@ -52,40 +53,34 @@ export class YouTubePlayer {
     this._player.setPlaybackRate(clamped);
   }
 
-  /** Returns engine-relative time (YT time minus offset), or null if not ready */
+  /** Engine-relative time (YT currentTime − offset), or null if not ready */
   currentTime() {
     if (!this._ready) return null;
     return this._player.getCurrentTime() - this._offset;
   }
 
-  /** YT.PlayerState constants: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued */
+  /** YT.PlayerState: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued */
   getState() {
     if (!this._ready) return -1;
-    return this._player.getPlayerState();
+    try { return this._player.getPlayerState(); } catch (_) { return -1; }
   }
 
   /** Register a callback fired on every YT state change — cb(ytPlayerState) */
-  onStateChange(cb) {
-    this._onState = cb;
-  }
+  onStateChange(cb) { this._onState = cb; }
 
   // ── Private ───────────────────────────────────────────────
 
   _loadApi() {
-    if (window.YT?.Player) {
-      this._initPlayer();
-      return;
-    }
-    // Chain onto any existing callback
+    if (window.YT?.Player) { this._initPlayer(); return; }
     const prev = window.onYouTubeIframeAPIReady;
     window.onYouTubeIframeAPIReady = () => {
       if (typeof prev === 'function') prev();
       this._initPlayer();
     };
     if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-      const s  = document.createElement('script');
-      s.src    = 'https://www.youtube.com/iframe_api';
-      s.async  = true;
+      const s = document.createElement('script');
+      s.src   = 'https://www.youtube.com/iframe_api';
+      s.async = true;
       document.head.appendChild(s);
     }
   }
@@ -113,6 +108,12 @@ export class YouTubePlayer {
         },
         onStateChange: (ev) => {
           if (this._onState) this._onState(ev.data);
+        },
+        onError: (ev) => {
+          // On error (150=embed-blocked, 101=not found, 5=HTML5 error) notify
+          // the state handler with a synthetic ENDED(0) so the UI doesn't hang.
+          console.warn('[YT] player error', ev.data);
+          if (this._onState) this._onState(0);
         },
       },
     });
