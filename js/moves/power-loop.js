@@ -4,7 +4,7 @@ export default {
   level: 'intermediate',
   difficulty: 3,
   durationSec: 4.5,
-  youtubeId:    'LSwz3F2pjYg',
+  youtubeId:    'Fz2ujoePXdo',
   youtubeStart: 0,
   description: 'Buong 360° vertical loop. Mag-approach nang mabilis, PULL pitch stick pabalik (nose up) para mag-arc pataas at paikot. CHOP throttle sa tuktok (inverted), agad na punch sa ibaba.',
   tips: [

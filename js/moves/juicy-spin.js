@@ -4,7 +4,7 @@ export default {
   level: 'advanced',
   difficulty: 4,
   durationSec: 3.5,
-  youtubeId:    'n6RX8iI6gcQ',
+  youtubeId:    'XTbEZPqFzBU',
   youtubeStart: 0,
   description: 'Throttle blip → mabilis na pitch snap papunta sa inverted → maikling "look-back" na pahinga → 180° roll pabalik sa upright. Ang "juicy" ay ang snappy, whip-like na pakiramdam ng galaw.',
   tips: [
