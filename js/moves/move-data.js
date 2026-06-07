@@ -10,24 +10,32 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import roll            from './roll.js';
+import reverseKnifeEdge from './reverse-knife-edge.js';
+import halfMattyFlip   from './half-matty-flip.js';
+import jackieChan      from './jackie-chan.js';
 
 export const MOVES = [
   // Beginner
   stall,
   splitS,
+  roll,
   // Intermediate
   powerLoop,
   immelmann,
   mattyFlip,
   knifeEdge,
+  reverseKnifeEdge,
   // Advanced
   juicySpin,
   trippySpin,
   bowtie,
   invertedYawSpin,
+  halfMattyFlip,
   // Pro
   sbang,
   sbangLookback,
+  jackieChan,
 ];
 
 export const LEVELS = {
