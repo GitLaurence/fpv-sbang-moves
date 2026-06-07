@@ -10,24 +10,36 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import smoothRoll      from './smooth-roll.js';
+import jackieChan      from './jackie-chan.js';
+import maztaBounce     from './mazta-bounce.js';
+import delayedFrontFlip from './delayed-front-flip.js';
+import somerMatty      from './somer-matty.js';
+import sbangTornado    from './sbang-tornado.js';
 
 export const MOVES = [
   // Beginner
   stall,
   splitS,
+  smoothRoll,
   // Intermediate
   powerLoop,
   immelmann,
   mattyFlip,
   knifeEdge,
+  jackieChan,
+  maztaBounce,
+  bowtie,
+  invertedYawSpin,
   // Advanced
   juicySpin,
   trippySpin,
-  bowtie,
-  invertedYawSpin,
+  delayedFrontFlip,
+  somerMatty,
   // Pro
   sbang,
   sbangLookback,
+  sbangTornado,
 ];
 
 export const LEVELS = {
