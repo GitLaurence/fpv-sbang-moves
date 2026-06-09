@@ -1,6 +1,7 @@
 import splitS          from './split-s.js';
 import powerLoop       from './power-loop.js';
 import mattyFlip       from './matty-flip.js';
+import halfMattyFlip   from './half-matty-flip.js';
 import knifeEdge       from './knife-edge.js';
 import juicySpin       from './juicy-spin.js';
 import trippySpin      from './trippy-spin.js';
@@ -10,6 +11,10 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import splitSRewind    from './split-s-rewind.js';
+import somerMatty      from './somer-matty.js';
+import maztaBounce     from './mazta-bounce.js';
+import sbangTornado    from './sbang-tornado.js';
 
 export const MOVES = [
   // Beginner
@@ -18,6 +23,7 @@ export const MOVES = [
   // Intermediate
   powerLoop,
   immelmann,
+  halfMattyFlip,
   mattyFlip,
   knifeEdge,
   // Advanced
@@ -25,9 +31,13 @@ export const MOVES = [
   trippySpin,
   bowtie,
   invertedYawSpin,
+  splitSRewind,
+  somerMatty,
   // Pro
   sbang,
   sbangLookback,
+  maztaBounce,
+  sbangTornado,
 ];
 
 export const LEVELS = {
