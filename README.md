@@ -179,11 +179,16 @@ I-implement ang mga moves na ito bilang keyframe data files (isa bawat move):
 | Split-S | ★★☆☆☆ | Mag-roll ng inverted, mag-pull ng half loop pababa |
 | Power Loop | ★★★☆☆ | Buong vertical loop sa ibabaw ng isang bagay |
 | Matty Flip | ★★★☆☆ | Nose-down flip papunta sa inverted, mag-roll pabalik |
-| Juicy Spin | ★★★★☆ | Flat na yaw spin na may tamang throttle management |
 | Knife Edge | ★★★☆☆ | 90° roll na pinananatili sa axis |
+| Reverse Knife Edge | ★★★☆☆ | Knife Edge sa kabilang direksyon |
+| Juicy Spin | ★★★★☆ | Flat na yaw spin na may tamang throttle management |
 | Trippy Spin | ★★★★☆ | Diagonal na corkscrew roll |
 | Bowtie | ★★★★☆ | Figure-8 na may inverted na bahagi |
+| Inverted Yaw Spin | ★★★★☆ | Mag-flip inverted, 360° yaw spin, mag-flip pabalik |
+| Split-S Rewind | ★★★★☆ | Split-S na may yaw para bumalik sa parehong landas |
 | Sbang | ★★★★★ | Inverted yaw spin reversal — ang pinaka-advanced |
+| Sbang Lookback | ★★★★★ | Sbang combo na may lookback exit |
+| Sbang Tornado | ★★★★★ | Sbang na may dagdag na 360° inverted yaw spin |
 
 Bawat move ay may sariling file sa `js/moves/` na naka-export ang keyframe data.
 
