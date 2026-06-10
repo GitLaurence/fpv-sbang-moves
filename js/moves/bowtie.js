@@ -4,7 +4,7 @@ export default {
   level: 'intermediate',
   difficulty: 2,
   durationSec: 3.5,
-  youtubeId:    'xB8kZMV1HGY',
+  youtubeId:    'oj4ReLw0OvM',
   youtubeStart: 0,
   description: 'Buong 360° flat spin gamit ang yaw — ang drone ay paikot-ikot habang napapanatili ang altitude at forward momentum. Pangunahing trick para matuto ng yaw authority at throttle management.',
   tips: [

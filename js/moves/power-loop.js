@@ -4,7 +4,7 @@ export default {
   level: 'intermediate',
   difficulty: 3,
   durationSec: 4.5,
-  youtubeId:    'LcYJFd3gMEQ',
+  youtubeId:    '0QAK68uip8E',
   youtubeStart: 0,
   description: 'Power loop na may kasamang roll — ang loop ay nagaganap sa gilid (sa halip na tuwirang overhead). Sabay na pitch back at full roll sa iisang direksyon para mag-arc ang drone sa patag na anggulo.',
   tips: [

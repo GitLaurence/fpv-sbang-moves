@@ -4,7 +4,7 @@ export default {
   level: 'pro',
   difficulty: 5,
   durationSec: 5.5,
-  youtubeId:    'WlqeC2reZkA',
+  youtubeId:    'Hvy04PiWypw',
   youtubeStart: 0,
   description: 'Sbang-style boost → roll inverted → dead stop → Split-S pull para lumabas sa kabaligtarang direksyon (ang "lookback") → Juicy Flick pabalik sa forward flight. Ang "dead stop" inverted ay signature ng sbang aesthetic.',
   tips: [
