@@ -4,7 +4,7 @@ export default {
   level: 'intermediate',
   difficulty: 3,
   durationSec: 5.5,
-  youtubeId:    'WunRnnUI4Wc',
+  youtubeId:    'UpNEeSRyPbQ',
   youtubeStart: 0,
   description: 'Mag-flip sa inverted, mag-spin ng isang buong 360° gamit ang yaw habang inverted, tapos mag-flip pabalik sa upright. Pinaka-photogenic na trick sa FPV — kahanga-hangang makita mula sa labas.',
   tips: [
