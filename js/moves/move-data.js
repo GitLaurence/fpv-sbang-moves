@@ -10,6 +10,8 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import ejectLookback   from './eject-lookback.js';
+import sbangTornado    from './sbang-tornado.js';
 
 export const MOVES = [
   // Beginner
@@ -25,9 +27,11 @@ export const MOVES = [
   trippySpin,
   bowtie,
   invertedYawSpin,
+  ejectLookback,
   // Pro
   sbang,
   sbangLookback,
+  sbangTornado,
 ];
 
 export const LEVELS = {
