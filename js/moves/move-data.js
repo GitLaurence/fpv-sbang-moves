@@ -10,21 +10,27 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import roll            from './roll.js';
+import orbits          from './orbits.js';
+import reverseKnifeEdge from './reverse-knife-edge.js';
 
 export const MOVES = [
   // Beginner
   stall,
+  roll,
   splitS,
   // Intermediate
   powerLoop,
   immelmann,
   mattyFlip,
   knifeEdge,
+  orbits,
   // Advanced
   juicySpin,
   trippySpin,
   bowtie,
   invertedYawSpin,
+  reverseKnifeEdge,
   // Pro
   sbang,
   sbangLookback,
