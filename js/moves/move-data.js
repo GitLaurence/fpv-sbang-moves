@@ -10,11 +10,15 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import roll            from './roll.js';
+import barani          from './barani.js';
+import pendulum        from './pendulum.js';
 
 export const MOVES = [
   // Beginner
   stall,
   splitS,
+  roll,
   // Intermediate
   powerLoop,
   immelmann,
@@ -25,9 +29,11 @@ export const MOVES = [
   trippySpin,
   bowtie,
   invertedYawSpin,
+  barani,
   // Pro
   sbang,
   sbangLookback,
+  pendulum,
 ];
 
 export const LEVELS = {
