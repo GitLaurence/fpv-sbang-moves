@@ -10,6 +10,8 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import maztaBounce     from './mazta-bounce.js';
+import reverseWallRide from './reverse-wall-ride.js';
 
 export const MOVES = [
   // Beginner
@@ -20,11 +22,13 @@ export const MOVES = [
   immelmann,
   mattyFlip,
   knifeEdge,
+  maztaBounce,
   // Advanced
   juicySpin,
   trippySpin,
   bowtie,
   invertedYawSpin,
+  reverseWallRide,
   // Pro
   sbang,
   sbangLookback,
