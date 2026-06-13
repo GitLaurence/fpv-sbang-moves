@@ -176,14 +176,21 @@ I-implement ang mga moves na ito bilang keyframe data files (isa bawat move):
 
 | Move | Difficulty | Paliwanag |
 |---|---|---|
+| Stall | ★☆☆☆☆ | I-cut ang throttle para "i-freeze" sa ere, tapos i-catch |
+| Roll | ★☆☆☆☆ | Buong 360° na aileron roll |
+| Backflip | ★★☆☆☆ | Buong 360° na backward flip gamit ang pitch axis |
 | Split-S | ★★☆☆☆ | Mag-roll ng inverted, mag-pull ng half loop pababa |
 | Power Loop | ★★★☆☆ | Buong vertical loop sa ibabaw ng isang bagay |
+| Immelmann | ★★★☆☆ | Half loop pataas tapos roll papuntang upright |
 | Matty Flip | ★★★☆☆ | Nose-down flip papunta sa inverted, mag-roll pabalik |
-| Juicy Spin | ★★★★☆ | Flat na yaw spin na may tamang throttle management |
 | Knife Edge | ★★★☆☆ | 90° roll na pinananatili sa axis |
+| Juicy Spin | ★★★★☆ | Flat na yaw spin na may tamang throttle management |
 | Trippy Spin | ★★★★☆ | Diagonal na corkscrew roll |
 | Bowtie | ★★★★☆ | Figure-8 na may inverted na bahagi |
-| Sbang | ★★★★★ | Inverted yaw spin reversal — ang pinaka-advanced |
+| Inverted Yaw Spin | ★★★★☆ | Flat spin habang inverted |
+| Jackie Chan | ★★★★☆ | Combo — roll to inverted, yaw spin, pull out |
+| Sbang | ★★★★★ | Boost → roll inverted → split-S → juicy flick → yaw accent |
+| Sbang Lookback | ★★★★★ | Sbang variant na may lookback orientation |
 
 Bawat move ay may sariling file sa `js/moves/` na naka-export ang keyframe data.
 
