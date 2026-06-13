@@ -10,21 +10,27 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import maztaBounce     from './mazta-bounce.js';
+import alleyOop        from './alley-oop.js';
+import juicyCartwheel  from './juicy-cartwheel.js';
 
 export const MOVES = [
   // Beginner
   stall,
   splitS,
+  maztaBounce,
   // Intermediate
   powerLoop,
   immelmann,
   mattyFlip,
   knifeEdge,
+  alleyOop,
   // Advanced
   juicySpin,
   trippySpin,
   bowtie,
   invertedYawSpin,
+  juicyCartwheel,
   // Pro
   sbang,
   sbangLookback,
