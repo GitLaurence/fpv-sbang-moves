@@ -10,11 +10,14 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import aileronRoll     from './aileron-roll.js';
+import somerMatty      from './somer-matty.js';
 
 export const MOVES = [
   // Beginner
   stall,
   splitS,
+  aileronRoll,
   // Intermediate
   powerLoop,
   immelmann,
@@ -25,6 +28,7 @@ export const MOVES = [
   trippySpin,
   bowtie,
   invertedYawSpin,
+  somerMatty,
   // Pro
   sbang,
   sbangLookback,
