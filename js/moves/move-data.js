@@ -10,10 +10,13 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import frontFlip       from './front-flip.js';
+import pendulum        from './pendulum.js';
 
 export const MOVES = [
   // Beginner
   stall,
+  frontFlip,
   splitS,
   // Intermediate
   powerLoop,
@@ -25,6 +28,7 @@ export const MOVES = [
   trippySpin,
   bowtie,
   invertedYawSpin,
+  pendulum,
   // Pro
   sbang,
   sbangLookback,
