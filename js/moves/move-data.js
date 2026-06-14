@@ -10,16 +10,20 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import maztaBounce     from './mazta-bounce.js';
+import reverseKnifeEdge from './reverse-knife-edge.js';
 
 export const MOVES = [
   // Beginner
   stall,
   splitS,
+  maztaBounce,
   // Intermediate
   powerLoop,
   immelmann,
   mattyFlip,
   knifeEdge,
+  reverseKnifeEdge,
   // Advanced
   juicySpin,
   trippySpin,
