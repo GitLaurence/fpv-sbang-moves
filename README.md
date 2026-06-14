@@ -183,7 +183,9 @@ I-implement ang mga moves na ito bilang keyframe data files (isa bawat move):
 | Knife Edge | ★★★☆☆ | 90° roll na pinananatili sa axis |
 | Trippy Spin | ★★★★☆ | Diagonal na corkscrew roll |
 | Bowtie | ★★★★☆ | Figure-8 na may inverted na bahagi |
+| Barani | ★★★★☆ | Backflip na may half-yaw twist sa gitna ng rotation |
 | Sbang | ★★★★★ | Inverted yaw spin reversal — ang pinaka-advanced |
+| Jackie Chan | ★★★★★ | Front flip → inverted yaw spin → roll recovery combo |
 
 Bawat move ay may sariling file sa `js/moves/` na naka-export ang keyframe data.
 
