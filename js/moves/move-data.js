@@ -10,9 +10,12 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import roll            from './roll.js';
+import jackieChan      from './jackie-chan.js';
 
 export const MOVES = [
   // Beginner
+  roll,
   stall,
   splitS,
   // Intermediate
@@ -28,6 +31,7 @@ export const MOVES = [
   // Pro
   sbang,
   sbangLookback,
+  jackieChan,
 ];
 
 export const LEVELS = {
