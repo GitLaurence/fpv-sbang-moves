@@ -10,6 +10,9 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import jackieChan      from './jackie-chan.js';
+import somerMatty      from './somer-matty.js';
+import delayedFrontFlip540 from './delayed-front-flip-540.js';
 
 export const MOVES = [
   // Beginner
@@ -25,9 +28,12 @@ export const MOVES = [
   trippySpin,
   bowtie,
   invertedYawSpin,
+  jackieChan,
   // Pro
   sbang,
   sbangLookback,
+  somerMatty,
+  delayedFrontFlip540,
 ];
 
 export const LEVELS = {
