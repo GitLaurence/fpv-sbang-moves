@@ -10,6 +10,8 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import reverseKnifeEdge from './reverse-knife-edge.js';
+import barani           from './barani.js';
 
 export const MOVES = [
   // Beginner
@@ -20,11 +22,13 @@ export const MOVES = [
   immelmann,
   mattyFlip,
   knifeEdge,
+  reverseKnifeEdge,
   // Advanced
   juicySpin,
   trippySpin,
   bowtie,
   invertedYawSpin,
+  barani,
   // Pro
   sbang,
   sbangLookback,
