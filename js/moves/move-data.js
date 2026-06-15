@@ -10,16 +10,21 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import aileronRoll     from './aileron-roll.js';
+import reverseKnifeEdge from './reverse-knife-edge.js';
+import jackieChan      from './jackie-chan.js';
 
 export const MOVES = [
   // Beginner
   stall,
   splitS,
+  aileronRoll,
   // Intermediate
   powerLoop,
   immelmann,
   mattyFlip,
   knifeEdge,
+  reverseKnifeEdge,
   // Advanced
   juicySpin,
   trippySpin,
@@ -28,6 +33,7 @@ export const MOVES = [
   // Pro
   sbang,
   sbangLookback,
+  jackieChan,
 ];
 
 export const LEVELS = {
