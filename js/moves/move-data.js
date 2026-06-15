@@ -10,9 +10,14 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import roll            from './roll.js';
+import somerMatty      from './somer-matty.js';
+import reverseKnifeEdge from './reverse-knife-edge.js';
+import maztaBounce     from './mazta-bounce.js';
 
 export const MOVES = [
   // Beginner
+  roll,
   stall,
   splitS,
   // Intermediate
@@ -25,9 +30,12 @@ export const MOVES = [
   trippySpin,
   bowtie,
   invertedYawSpin,
+  somerMatty,
+  reverseKnifeEdge,
   // Pro
   sbang,
   sbangLookback,
+  maztaBounce,
 ];
 
 export const LEVELS = {
