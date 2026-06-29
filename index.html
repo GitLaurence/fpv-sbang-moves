@@ -67,6 +67,7 @@
 
     <div class="sidebar-header">
       <span class="sidebar-title">FREESTYLE</span>
+      <span class="sidebar-count" id="move-count" aria-label="Bilang ng moves"></span>
       <button class="sidebar-icon-btn" id="btn-filter" aria-label="I-filter ang mga moves">
         <svg width="16" height="16"><use href="#icon-filter"/></svg>
       </button>
@@ -74,6 +75,17 @@
 
     <div class="sidebar-scroll" id="move-list">
       <!-- populated by main.js -->
+    </div>
+
+    <div class="sidebar-footer" id="sidebar-footer">
+      <a href="https://www.youtube.com/@headmazta" target="_blank" rel="noopener noreferrer"
+         class="channel-credit" aria-label="HeadMazta YouTube channel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M21.58 7.19s-.21-1.49-.86-2.14c-.82-.86-1.74-.87-2.16-.92C15.54 3.85 12 3.85 12 3.85s-3.54 0-6.56.28c-.42.05-1.34.06-2.16.92-.65.65-.86 2.14-.86 2.14S2.14 8.87 2.14 10.56v1.58c0 1.69.28 3.37.28 3.37s.21 1.49.86 2.14c.82.86 1.9.84 2.38.93 1.73.17 7.34.22 7.34.22s3.54-.01 6.56-.28c.42-.05 1.34-.06 2.16-.92.65-.65.86-2.14.86-2.14s.28-1.69.28-3.37v-1.58c0-1.69-.28-3.37-.28-3.37zM9.96 15.22V8.78l5.84 3.22-5.84 3.22z"/>
+        </svg>
+        <span>headmazta</span>
+      </a>
+      <span class="channel-label">All tutorials by</span>
     </div>
 
   </nav>

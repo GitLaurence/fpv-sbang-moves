@@ -636,6 +636,7 @@ setTimeout(dismissIntro, 1400);
 
 // Build sidebar first so filter + sheet can reference its cards
 buildSidebar();
+document.getElementById('move-count').textContent = `${MOVES.length} MOVES`;
 
 // Init UI modules that depend on sidebar DOM being ready
 new SidebarFilter(document.getElementById('move-list'));
