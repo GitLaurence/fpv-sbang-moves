@@ -133,7 +133,7 @@ ytPlayer.onStateChange((state) => {
   if (!_ytActive) return;
 
   if (state === 1 /* PLAYING */) {
-    ytBadge.textContent = '▶ YT VIDEO';
+    ytBadge.textContent = '▶ HEADMAZTA';
 
     if (_ytWaitPlay || _ytBufferPause) {
       // YT confirmed playing — sync engine to YT's exact time and start it.
@@ -160,7 +160,7 @@ ytPlayer.onStateChange((state) => {
     }
 
   } else if (state === 0 /* ENDED */) {
-    ytBadge.textContent = '▶ YT VIDEO';
+    ytBadge.textContent = '▶ HEADMAZTA';
     if (engine.isPlaying && engine.isLooping) {
       // Loop mode: seek YT back to the start of the move clip and replay.
       // The engine already looped (handled in _tick); now sync YT to it.
@@ -230,7 +230,8 @@ function buildSidebar() {
     header.className = 'category-label';
     header.innerHTML = `
       <div class="category-dot"></div>
-      <span>${LEVELS[level].label}</span>`;
+      <span>${LEVELS[level].label}</span>
+      <span class="category-count">${byLevel[level].length}</span>`;
     group.appendChild(header);
 
     for (const move of byLevel[level]) {
@@ -294,11 +295,12 @@ function loadMove(move) {
   fpvCanvas.style.display    = _ytActive ? 'none' : '';
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
-  ytBadge.textContent        = '▶ YT VIDEO';
+  ytBadge.textContent        = '▶ HEADMAZTA';
   fpvBadge.style.display     = _ytActive ? 'none' : '';
   if (_ytActive) {
     ytBadge.textContent = '⏳ LOADING…';
     ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);
+    ytPlayer.seek(0);
   }
 
   // Load into engine (seeks to 0 and emits first frame)

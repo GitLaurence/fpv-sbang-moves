@@ -28,6 +28,19 @@
   margin-left: var(--space-2);
 }
 
+.category-count {
+  font-family: var(--font-osd);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: var(--bg-raised);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-pill);
+  padding: 1px 5px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 /* difficulty dot on collapsed sidebar */
 .category-dot {
   width: 8px;
