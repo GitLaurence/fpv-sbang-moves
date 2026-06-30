@@ -565,6 +565,12 @@ document.addEventListener('keydown', e => {
     case 'G':
       btnGhost.click();
       break;
+    case '/': {
+      e.preventDefault();
+      const searchInput = document.getElementById('sidebar-search');
+      if (searchInput) searchInput.focus();
+      break;
+    }
   }
 });
 
@@ -650,6 +656,10 @@ stickRenderer.cacheTheme();
 
 // Build sidebar first so filter + sheet can reference its cards
 buildSidebar();
+
+// Show total move count in sidebar title
+const sidebarTitle = document.querySelector('.sidebar-title');
+if (sidebarTitle) sidebarTitle.textContent = `FREESTYLE · ${MOVES.length}`;
 
 // Init UI modules that depend on sidebar DOM being ready
 new SidebarFilter(document.getElementById('move-list'));
