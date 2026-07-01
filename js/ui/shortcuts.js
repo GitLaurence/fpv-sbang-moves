@@ -2,6 +2,8 @@
 // Shows a keyboard shortcut reference on '?' keypress.
 // Dismiss with Escape or clicking outside.
 
+import { trapFocus } from './focus-trap.js';
+
 const SHORTCUTS = [
   { keys: ['Space'],          desc: 'Play / Pause' },
   { keys: ['←', '→'],        desc: 'Mag-step ng isang frame' },
@@ -17,17 +19,31 @@ const SHORTCUTS = [
 
 export class ShortcutsOverlay {
   constructor() {
-    this._overlay = null;
+    this._overlay      = null;
+    this._releaseTrap  = null;
+    this._opener       = null;
     this._build();
     this._bindKeys();
   }
 
   toggle() {
-    this._overlay.classList.toggle('visible');
+    this._overlay.classList.contains('visible') ? this.hide() : this.show();
+  }
+
+  show() {
+    this._opener = document.activeElement;
+    this._overlay.classList.add('visible');
+    this._releaseTrap = trapFocus(this._overlay);
+    this._overlay.querySelector('.shortcuts-close')?.focus();
   }
 
   hide() {
+    if (!this._overlay.classList.contains('visible')) return;
     this._overlay.classList.remove('visible');
+    this._releaseTrap?.();
+    this._releaseTrap = null;
+    this._opener?.focus();
+    this._opener = null;
   }
 
   // ── Build ─────────────────────────────────────────────────

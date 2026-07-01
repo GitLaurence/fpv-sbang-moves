@@ -198,10 +198,12 @@ function updatePlayBtn() {
 }
 
 function syncScrubber() {
-  const pct = engine.fraction * 100;
-  scrubber.value = Math.round(engine.fraction * 1000);
+  const pct   = engine.fraction * 100;
+  const raw   = Math.round(engine.fraction * 1000);
+  scrubber.value = raw;
   scrubber.style.setProperty('--scrubber-pct', `${pct}%`);
-  scrubber.setAttribute('aria-valuenow',   Math.round(pct));
+  // aria-valuenow must match the same scale as the native min/max (0–1000)
+  scrubber.setAttribute('aria-valuenow',   raw);
   scrubber.setAttribute('aria-valuetext',  `${engine.time.toFixed(1)} seconds`);
   timeCurrent.textContent = fmtTime(engine.time);
 }
@@ -286,6 +288,11 @@ function loadMove(move) {
   // Reset renderers for fresh start (BUG-06: use public API)
   stickRenderer.reset();
   fpvRenderer.resetSim();
+
+  // UX-05: loop is per-move by convention — don't carry it over between moves
+  engine.setLooping(false);
+  btnLoop.classList.remove('active');
+  btnLoop.setAttribute('aria-pressed', 'false');
 
   // Switch between YouTube video and canvas FPV renderer
   _ytActive      = !!move.youtubeId;

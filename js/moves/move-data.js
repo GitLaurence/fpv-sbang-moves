@@ -23,10 +23,12 @@ import lookbackLoop           from './lookback-loop.js';
 import juicyTrackingLookback  from './juicy-tracking-lookback.js';
 import juicyFlickRewindIys    from './juicy-flick-rewind-iys.js';
 import ejectLookbackIys       from './eject-lookback-iys.js';
+import roll                   from './roll.js';
 
 export const MOVES = [
   // Beginner
   stall,
+  roll,
   splitS,
   forwardFlip,
   // Intermediate

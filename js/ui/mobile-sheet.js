@@ -2,6 +2,8 @@
 // Bottom sheet for move selection on mobile (< 768px).
 // Clones the sidebar move list into a slide-up panel.
 
+import { trapFocus } from './focus-trap.js';
+
 export class MobileSheet {
   constructor(onMoveSelect) {
     this._onSelect    = onMoveSelect;
@@ -9,6 +11,7 @@ export class MobileSheet {
     this._backdrop    = null;
     this._triggerBtn  = null;
     this._opener      = null; // A11Y-04: element to restore focus to on close
+    this._releaseTrap = null; // A11Y-03: focus trap release fn
     this._build();
   }
 
@@ -20,6 +23,7 @@ export class MobileSheet {
     this._triggerBtn?.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
     this._sheet.querySelector('.mobile-sheet-list')?.focus();
+    this._releaseTrap = trapFocus(this._sheet);
   }
 
   close() {
@@ -27,6 +31,8 @@ export class MobileSheet {
     this._sheet.classList.remove('open');
     this._triggerBtn?.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
+    this._releaseTrap?.();
+    this._releaseTrap = null;
     // A11Y-04: restore focus to the element that opened the sheet
     this._opener?.focus();
     this._opener = null;
