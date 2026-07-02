@@ -63,9 +63,6 @@ export class FpvCamRenderer {
       roll:       0,
       yaw:        0,
     };
-
-    // Previous frame canvas for motion blur persistence
-    this._prevImageData = null;
   }
 
   resetSim() {
@@ -82,7 +79,7 @@ export class FpvCamRenderer {
       roll:       0,
       yaw:        0,
     };
-    this._prevImageData = null;
+    this._clearCanvas();
   }
 
   render(frame) {
@@ -93,9 +90,14 @@ export class FpvCamRenderer {
   }
 
   resize() {
-    this._prevImageData = null;
+    this._clearCanvas();
     if (this.sim.prevT !== null) this._drawScene(this.sim);
     this.hud.resize();
+  }
+
+  _clearCanvas() {
+    const { canvas, ctx } = this;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   // ── Scene ──────────────────────────────────────────────────
@@ -106,11 +108,12 @@ export class FpvCamRenderer {
     const H = canvas.height;
     if (W <= 0 || H <= 0) return;
 
-    // Motion blur: paint previous frame at low alpha before redrawing
-    const speed       = sim.speed;
-    const blurAmount  = clamp((speed - 40) / 100, 0, 0.22);
-    if (blurAmount > 0 && this._prevImageData) {
-      ctx.putImageData(this._prevImageData, 0, 0);
+    // Motion blur: fade the existing canvas content instead of a full clear,
+    // then draw on top — the GPU composites the trail, no pixel readback
+    // needed (see PERF-02; previously used getImageData/putImageData).
+    const speed      = sim.speed;
+    const blurAmount = clamp((speed - 40) / 100, 0, 0.22);
+    if (blurAmount > 0) {
       ctx.fillStyle = `rgba(5,6,8,${blurAmount})`;
       ctx.fillRect(0, 0, W, H);
     } else {
@@ -140,9 +143,6 @@ export class FpvCamRenderer {
     this._drawPitchLadder(ctx, half, horizonY, diag, sim.pitchDeg);
 
     ctx.restore();
-
-    // Store this frame for next blur pass
-    this._prevImageData = ctx.getImageData(0, 0, W, H);
   }
 
   _drawSky(ctx, half, horizonY, diag) {

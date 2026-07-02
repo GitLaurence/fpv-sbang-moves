@@ -11,11 +11,13 @@
 //
 // onFrame(frame)  — called every rAF tick with interpolated frame
 // onEnd()         — called when playback reaches the end (loop=false)
+// onLoop()        — called when playback wraps back to 0 (loop=true)
 
 export class PlaybackEngine {
-  constructor(onFrame, onEnd) {
+  constructor(onFrame, onEnd, onLoop) {
     this._onFrame = onFrame;
     this._onEnd   = onEnd;
+    this._onLoop  = onLoop;
 
     this._move    = null;
     this._time    = 0;       // current position in seconds
@@ -26,6 +28,11 @@ export class PlaybackEngine {
 
     this._rafId   = null;
     this._lastNow = null;
+
+    // Reusable frame object — mutated in place each tick to avoid
+    // allocating a new object 60×/s. Consumers must read it synchronously
+    // (they do: renderers copy the values they need immediately).
+    this._frame = { t: 0, throttle: 0, yaw: 0, pitch: 0, roll: 0 };
   }
 
   // ── Public API ─────────────────────────────────────────────
@@ -102,6 +109,7 @@ export class PlaybackEngine {
     if (this._time >= this._move.durationSec) {
       if (this._looping) {
         this._time = this._time % this._move.durationSec;
+        this._onLoop?.();
       } else {
         this._time    = this._move.durationSec;
         this._playing = false;
@@ -124,10 +132,15 @@ export class PlaybackEngine {
   }
 
   _interpolate(t) {
+    const out = this._frame;
     const kfs = this._move.keyframes;
-    if (!kfs || kfs.length === 0) return { t, throttle: 0, yaw: 0, pitch: 0, roll: 0 };
-    if (t <= kfs[0].t)                   return { ...kfs[0], t };
-    if (t >= kfs[kfs.length - 1].t)      return { ...kfs[kfs.length - 1], t };
+
+    if (!kfs || kfs.length === 0) {
+      out.t = t; out.throttle = 0; out.yaw = 0; out.pitch = 0; out.roll = 0;
+      return out;
+    }
+    if (t <= kfs[0].t)              return assignFrame(out, kfs[0], t);
+    if (t >= kfs[kfs.length - 1].t) return assignFrame(out, kfs[kfs.length - 1], t);
 
     // Find surrounding pair
     let i = 0;
@@ -143,10 +156,8 @@ export class PlaybackEngine {
     const segDur = b.t - a.t;
     const u      = segDur > 0 ? (t - a.t) / segDur : 0;
 
-    const channels = ['throttle', 'yaw', 'pitch', 'roll'];
-    const out = { t };
-
-    for (const ch of channels) {
+    out.t = t;
+    for (const ch of CHANNELS) {
       out[ch] = catmullRom(
         p0[ch] ?? a[ch],
         a[ch],
@@ -158,6 +169,14 @@ export class PlaybackEngine {
 
     return out;
   }
+}
+
+const CHANNELS = ['throttle', 'yaw', 'pitch', 'roll'];
+
+function assignFrame(out, kf, t) {
+  out.t = t;
+  for (const ch of CHANNELS) out[ch] = kf[ch];
+  return out;
 }
 
 // ── Math helpers ───────────────────────────────────────────

@@ -40,6 +40,7 @@ const moveInfoEl    = document.getElementById('move-info');
 const resizeHandle  = document.getElementById('resize-handle');
 const mainEl        = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
+const srStatus      = document.getElementById('sr-status');
 
 // ── Renderers ──────────────────────────────────────────────
 const stickCanvas   = document.getElementById('stick-canvas');
@@ -54,6 +55,7 @@ const fpvBadge      = document.getElementById('fpv-badge');
 const ytPlayer      = new YouTubePlayer('yt-player');
 
 let _ytActive      = false;
+let _ytReady       = false; // YT iframe API + player fully initialised (see UX-04)
 let _ytBufferPause = false; // engine paused because YT was buffering mid-play
 let _ytWaitPlay    = false; // play requested; engine held until YT fires PLAYING
 let _ytLastEngineT = -1;    // previous frame's engine time — used to detect loops
@@ -80,7 +82,7 @@ let ghostEnabled = false;
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
   (frame) => {
-    if (_ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay) {
+    if (_ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay && !scrubbing) {
       const ytState = ytPlayer.getState();
       if (ytState === 1 /* PLAYING */) {
         const ytTime = ytPlayer.currentTime();
@@ -114,11 +116,13 @@ const engine = new PlaybackEngine(
     audio.silence();
     if (_ytActive) ytPlayer.pause();
     _ytLastEngineT = -1;
-    if (engine.isLooping && ghostEnabled) {
+    if (ghostEnabled) stickRenderer.commitRecording();
+  },
+  // onLoop — called when playback wraps back to 0 (loop=true path)
+  () => {
+    if (ghostEnabled) {
       stickRenderer.commitRecording();
       stickRenderer.startRecording();
-    } else if (ghostEnabled) {
-      stickRenderer.commitRecording();
     }
   }
 );
@@ -176,6 +180,22 @@ ytPlayer.onStateChange((state) => {
   }
 });
 
+// YT iframe API can take 1-3s to load on slow connections — reflect that
+// in the badge instead of showing a blank black area (see UX-04).
+ytPlayer.onReady(() => {
+  _ytReady = true;
+  if (_ytActive && !ytBadge.classList.contains('yt-error')) {
+    ytBadge.textContent = '▶ YT VIDEO';
+  }
+});
+
+// Surface embed-blocked / not-found errors instead of failing silently
+// into a blank black box (see A11Y-01 / UX-01).
+ytPlayer.onError(() => {
+  ytBadge.textContent = '⚠ VIDEO UNAVAILABLE';
+  ytBadge.classList.add('yt-error');
+});
+
 // ── Helpers ────────────────────────────────────────────────
 function fmtTime(sec) {
   const m  = Math.floor(sec / 60);
@@ -189,6 +209,7 @@ function updatePlayBtn() {
     ? '<use href="#icon-pause"/>'
     : '<use href="#icon-play"/>';
   btnPlay.setAttribute('aria-label', engine.isPlaying ? 'I-pause' : 'I-play');
+  if (srStatus) srStatus.textContent = engine.isPlaying ? 'Playing' : 'Paused';
 }
 
 function syncScrubber() {
@@ -276,12 +297,15 @@ function loadMove(move) {
   const activeCard = document.querySelector(`.move-card[data-id="${move.id}"]`);
   if (activeCard) activeCard.classList.add('active');
 
-  // Reset renderers for fresh start
-  stickRenderer._leftTrail  = [];
-  stickRenderer._rightTrail = [];
-  stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+  // Reset renderers for fresh start (see BUG-06 — public API, not private fields)
+  stickRenderer.resetLive();
   stickRenderer.clearGhost();
   fpvRenderer.resetSim();
+
+  // Loop mode is per-move by convention, not global (see UX-05)
+  engine.setLooping(false);
+  btnLoop.classList.remove('active');
+  btnLoop.setAttribute('aria-pressed', 'false');
 
   // Switch between YouTube video and canvas FPV renderer
   _ytActive      = !!move.youtubeId;
@@ -291,10 +315,12 @@ function loadMove(move) {
   fpvCanvas.style.display    = _ytActive ? 'none' : '';
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
-  ytBadge.textContent        = '▶ YT VIDEO';
+  ytBadge.textContent        = _ytActive && !_ytReady ? '⏳ LOADING…' : '▶ YT VIDEO';
+  ytBadge.classList.remove('yt-error');
   fpvBadge.style.display     = _ytActive ? 'none' : '';
   if (_ytActive) {
     ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);
+    ytPlayer.seek(0); // force restart even if this video was already cued (see UX-06)
   }
 
   // Load into engine (seeks to 0 and emits first frame)
@@ -428,7 +454,10 @@ btnGhost.addEventListener('click', () => {
   }
 });
 
-btnSkipStart.addEventListener('click', () => engine.skipToStart());
+btnSkipStart.addEventListener('click', () => {
+  engine.skipToStart();
+  stickRenderer.clearGhost(); // don't overlay a stale ghost from the previous run (see UX-02)
+});
 btnSkipEnd.addEventListener('click',   () => engine.skipToEnd());
 btnStepBack.addEventListener('click',  () => engine.stepBack());
 btnStepFwd.addEventListener('click',   () => engine.stepForward());
@@ -499,6 +528,7 @@ themeBtns.forEach(btn => {
       b.classList.toggle('active', b === btn);
       b.setAttribute('aria-pressed', String(b === btn));
     });
+    document.dispatchEvent(new CustomEvent('themechange'));
   });
 });
 
@@ -601,13 +631,12 @@ document.addEventListener('keydown', e => {
 })();
 
 // ── Canvas Resize Observer ─────────────────────────────────
+// Canvas refs are cached at module scope (see PERF-03) — no per-resize DOM lookups
 const ro = new ResizeObserver(() => {
-  const ids = _ytActive
-    ? ['osd-canvas', 'stick-canvas']
-    : ['fpv-canvas', 'osd-canvas', 'stick-canvas'];
-  ids.forEach(id => {
-    const canvas = document.getElementById(id);
-    if (!canvas) return;
+  const canvases = _ytActive
+    ? [osdCanvas, stickCanvas]
+    : [fpvCanvas, osdCanvas, stickCanvas];
+  canvases.forEach(canvas => {
     canvas.width  = canvas.offsetWidth  * devicePixelRatio;
     canvas.height = canvas.offsetHeight * devicePixelRatio;
   });

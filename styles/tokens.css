@@ -103,6 +103,11 @@
   --text-primary:   #1a1e2a;
   --text-secondary: #6b7280;
   --border-panel:  1px solid rgba(0, 0, 0, 0.08);
+  --border-accent: 1px solid rgba(0, 150, 130, 0.35);
   --glow-primary:  0 0 8px rgba(0, 200, 170, 0.3);
+  --glow-danger:   0 0 8px rgba(220, 30, 100, 0.35);
   --glow-subtle:   0 2px 8px rgba(0, 0, 0, 0.08);
+  --glow-card:     0 4px 24px rgba(0, 0, 0, 0.12);
+  --shadow-panel:  inset 0 0 0 1px rgba(0, 0, 0, 0.04),
+                   0 0 0 1px rgba(0, 0, 0, 0.06);
 }

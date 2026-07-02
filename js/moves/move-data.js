@@ -10,24 +10,34 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import backwardFlying  from './backward-flying.js';
+import boomerang       from './boomerang.js';
+import barani          from './barani.js';
+import somerMatty      from './somer-matty.js';
+import frontFlip540    from './front-flip-540.js';
 
 export const MOVES = [
   // Beginner
   stall,
   splitS,
+  backwardFlying,
   // Intermediate
   powerLoop,
   immelmann,
   mattyFlip,
   knifeEdge,
+  boomerang,
   // Advanced
   juicySpin,
   trippySpin,
   bowtie,
   invertedYawSpin,
+  barani,
+  somerMatty,
   // Pro
   sbang,
   sbangLookback,
+  frontFlip540,
 ];
 
 export const LEVELS = {

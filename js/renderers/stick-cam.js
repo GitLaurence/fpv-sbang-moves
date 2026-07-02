@@ -9,6 +9,8 @@ const CHANNEL_COLORS = {
   roll:     { hex: '#00f5d4', rgb: '0,245,212'   },
 };
 
+const METER_CHANNEL = { t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' };
+
 // ── StickCamRenderer ───────────────────────────────────────
 export class StickCamRenderer {
   constructor(canvas) {
@@ -33,8 +35,22 @@ export class StickCamRenderer {
     this._recLeft      = [];
     this._recRight     = [];
 
+    // Cached theme colors — refreshed on construction and theme change
+    this._colBgPanel = '#0b0d12';
+    this._cacheThemeColors();
+    document.addEventListener('themechange', () => this._cacheThemeColors());
+
     // Build meter DOM once
     this._buildMeters();
+  }
+
+  // ── Live State Reset ──────────────────────────────────────
+
+  /** Reset trails and smoothing for a freshly loaded move (public — see BUG-06). */
+  resetLive() {
+    this._leftTrail  = [];
+    this._rightTrail = [];
+    this._smooth      = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
   }
 
   // ── Ghost Trail API ───────────────────────────────────────
@@ -112,6 +128,11 @@ export class StickCamRenderer {
 
   // ── Private ───────────────────────────────────────────────
 
+  _cacheThemeColors() {
+    this._colBgPanel = getComputedStyle(document.documentElement)
+      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
+  }
+
   _draw() {
     const { canvas, ctx } = this;
     const dpr = devicePixelRatio || 1;
@@ -125,9 +146,8 @@ export class StickCamRenderer {
 
     ctx.clearRect(0, 0, W, canvas.height);
 
-    // Panel background
-    ctx.fillStyle = getComputedStyle(document.documentElement)
-      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
+    // Panel background — cached, not re-read from CSS every frame (see PERF-01)
+    ctx.fillStyle = this._colBgPanel;
     ctx.fillRect(0, 0, W, canvas.height);
 
     const halfW   = W / 2;
@@ -378,7 +398,7 @@ export class StickCamRenderer {
 
       val.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
       val.style.color = Math.abs(v) > 0.9
-        ? CHANNEL_COLORS[{ t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' }[key]].hex
+        ? CHANNEL_COLORS[METER_CHANNEL[key]].hex
         : '';
     }
   }
