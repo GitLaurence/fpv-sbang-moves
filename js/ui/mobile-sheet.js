@@ -16,12 +16,14 @@ export class MobileSheet {
     this._sheet.classList.add('open');
     document.body.style.overflow = 'hidden';
     this._sheet.querySelector('.mobile-sheet-list')?.focus();
+    this._trigger?.setAttribute('aria-expanded', 'true');
   }
 
   close() {
     this._backdrop.classList.remove('visible');
     this._sheet.classList.remove('open');
     document.body.style.overflow = '';
+    this._trigger?.setAttribute('aria-expanded', 'false');
   }
 
   toggle() {
@@ -75,8 +77,8 @@ export class MobileSheet {
     this._sheet = sheet;
 
     // Wire mobile button
-    document.getElementById('mobile-moves-btn')
-      ?.addEventListener('click', () => this.toggle());
+    this._trigger = document.getElementById('mobile-moves-btn');
+    this._trigger?.addEventListener('click', () => this.toggle());
 
     // Escape to close
     document.addEventListener('keydown', e => {

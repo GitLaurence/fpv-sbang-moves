@@ -18,8 +18,8 @@ export default {
     { t: 0.55, label: 'Pitch Snap' },
     { t: 1.0,  label: 'Inverted' },
     { t: 1.25, label: 'Roll Out' },
-    { t: 1.8,  label: 'Upright' },
-    { t: 2.3,  label: 'Exit' },
+    { t: 1.9,  label: 'Upright' },
+    { t: 2.4,  label: 'Exit' },
   ],
   keyframes: [
     // Entry — level forward flight

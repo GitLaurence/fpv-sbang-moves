@@ -135,6 +135,12 @@ body {
   border: var(--border-accent);
 }
 
+.panel-badge.yt-error {
+  background: rgba(255, 60, 60, 0.18);
+  border-color: rgba(255, 80, 80, 0.5);
+  color: #ff8080;
+}
+
 #fpv-header  { grid-area: fpv-header; }
 #stick-header { grid-area: stick-header; }
 
@@ -209,6 +215,11 @@ body {
 #resize-handle.dragging {
   background: var(--accent-primary);
   box-shadow: var(--glow-primary);
+}
+
+#resize-handle:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
 }
 
 /* ── Move Info Panel ──────────────────────────────────────── */

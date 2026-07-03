@@ -40,6 +40,9 @@ const moveInfoEl    = document.getElementById('move-info');
 const resizeHandle  = document.getElementById('resize-handle');
 const mainEl        = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
+const srStatus      = document.getElementById('sr-status');
+
+function announce(msg) { srStatus.textContent = msg; }
 
 // ── Renderers ──────────────────────────────────────────────
 const stickCanvas   = document.getElementById('stick-canvas');
@@ -104,29 +107,41 @@ const engine = new PlaybackEngine(
     fpvRenderer.render(frame);
     phaseTracker.update(frame.t);
     syncScrubber();
-    audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
-    audio.resume();
+    if (!_ytActive) {
+      audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
+      audio.resume();
+    }
   },
-  // onEnd — called when engine reaches durationSec (loop=false path)
+  // onEnd — called when engine reaches durationSec (loop=false path only;
+  // the engine wraps silently without calling onEnd while looping)
   () => {
     updatePlayBtn();
     pulseScrubberEnd();
     audio.silence();
     if (_ytActive) ytPlayer.pause();
     _ytLastEngineT = -1;
-    if (engine.isLooping && ghostEnabled) {
-      stickRenderer.commitRecording();
-      stickRenderer.startRecording();
-    } else if (ghostEnabled) {
-      stickRenderer.commitRecording();
-    }
+    if (ghostEnabled) stickRenderer.commitRecording();
   }
 );
+
+// ── YouTube error handler ───────────────────────────────────
+let _ytErrored = false;
+
+ytPlayer.onError(() => {
+  if (!_ytActive) return;
+  _ytErrored = true;
+  ytBadge.textContent = '⚠ VIDEO UNAVAILABLE';
+  ytBadge.classList.add('yt-error');
+  engine.pause();
+  audio.silence();
+  updatePlayBtn();
+  announce('Hindi available ang video para sa move na ito');
+});
 
 // ── YouTube state handler ──────────────────────────────────
 // YT.PlayerState: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
 ytPlayer.onStateChange((state) => {
-  if (!_ytActive) return;
+  if (!_ytActive || _ytErrored) return;
 
   if (state === 1 /* PLAYING */) {
     ytBadge.textContent = '▶ YT VIDEO';
@@ -189,6 +204,7 @@ function updatePlayBtn() {
     ? '<use href="#icon-pause"/>'
     : '<use href="#icon-play"/>';
   btnPlay.setAttribute('aria-label', engine.isPlaying ? 'I-pause' : 'I-play');
+  announce(engine.isPlaying ? 'Playing' : 'Paused');
 }
 
 function syncScrubber() {
@@ -277,9 +293,7 @@ function loadMove(move) {
   if (activeCard) activeCard.classList.add('active');
 
   // Reset renderers for fresh start
-  stickRenderer._leftTrail  = [];
-  stickRenderer._rightTrail = [];
-  stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+  stickRenderer.resetTrails();
   stickRenderer.clearGhost();
   fpvRenderer.resetSim();
 
@@ -288,6 +302,8 @@ function loadMove(move) {
   _ytBufferPause = false;
   _ytWaitPlay    = false;
   _ytLastEngineT = -1;
+  _ytErrored     = false;
+  ytBadge.classList.remove('yt-error');
   fpvCanvas.style.display    = _ytActive ? 'none' : '';
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
@@ -416,6 +432,7 @@ btnMute.addEventListener('click', () => {
   btnMute.classList.toggle('active', muted);
   btnMute.setAttribute('aria-pressed', String(muted));
   btnMute.querySelector('use').setAttribute('href', muted ? '#icon-mute' : '#icon-volume');
+  announce(muted ? 'Naka-mute' : 'Naka-unmute');
 });
 
 btnGhost.addEventListener('click', () => {
@@ -428,7 +445,14 @@ btnGhost.addEventListener('click', () => {
   }
 });
 
-btnSkipStart.addEventListener('click', () => engine.skipToStart());
+btnSkipStart.addEventListener('click', () => {
+  engine.skipToStart();
+  // Replaying from the top should not overlay a ghost from the previous run
+  if (ghostEnabled) {
+    stickRenderer.clearGhost();
+    if (engine.isPlaying) stickRenderer.startRecording();
+  }
+});
 btnSkipEnd.addEventListener('click',   () => engine.skipToEnd());
 btnStepBack.addEventListener('click',  () => engine.stepBack());
 btnStepFwd.addEventListener('click',   () => engine.stepForward());
@@ -438,6 +462,7 @@ btnLoop.addEventListener('click', () => {
   engine.setLooping(on);
   btnLoop.classList.toggle('active', on);
   btnLoop.setAttribute('aria-pressed', String(on));
+  announce(on ? 'Loop naka-on' : 'Loop naka-off');
 });
 
 btnStep.addEventListener('click', () => {
@@ -463,11 +488,9 @@ speedPills.forEach(pill => {
   });
 });
 
-// Scrubber drag
-let scrubbing = false;
-
+// Scrubber drag — pausing on mousedown keeps the YT drift-correction
+// block (gated on engine.isPlaying) from fighting the drag.
 scrubber.addEventListener('mousedown', () => {
-  scrubbing = true;
   engine.pause();
   updatePlayBtn();
   if (_ytActive) ytPlayer.pause();
@@ -478,8 +501,6 @@ scrubber.addEventListener('input', () => {
   engine.seekFraction(scrubber.value / 1000);
   if (_ytActive) ytPlayer.seek(engine.time);
 });
-
-document.addEventListener('mouseup', () => { scrubbing = false; });
 
 // Scrubber hover tooltip
 scrubber.addEventListener('mousemove', e => {

@@ -113,7 +113,7 @@ html {
     rgba(0, 0, 0, 0.04) 4px
   );
   pointer-events: none;
-  z-index: 2;
+  z-index: 3; /* above #yt-container (z-index: 2) so scanlines render over video */
 }
 
 [data-theme="betaflight"] .canvas-wrap::after {

@@ -32,9 +32,9 @@ export default {
     { t: 1.7,  throttle: 0.85, yaw:  0.00, pitch: -1.00, roll:  0.00 },
     // Approaching top — ease pitch slightly, prepare roll
     { t: 1.95, throttle: 0.75, yaw:  0.00, pitch: -0.80, roll:  0.00 },
-    // TOP (inverted) — half roll to exit upright, release pitch
-    { t: 2.05, throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  1.00 },
-    { t: 2.28, throttle: 0.62, yaw:  0.00, pitch:  0.00, roll:  1.00 },
+    // TOP (inverted) — throttle eased off so the half roll completes cleanly
+    { t: 2.05, throttle: 0.30, yaw:  0.00, pitch:  0.00, roll:  1.00 },
+    { t: 2.28, throttle: 0.32, yaw:  0.00, pitch:  0.00, roll:  1.00 },
     // Upright — roll complete, exit in opposite direction
     { t: 2.45, throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.20 },
     { t: 2.6,  throttle: 0.65, yaw:  0.00, pitch:  0.00, roll:  0.00 },

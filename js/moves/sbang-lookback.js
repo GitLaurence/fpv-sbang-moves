@@ -40,8 +40,9 @@ export default {
     { t: 1.55, throttle: 0.35, yaw:  0.00, pitch: -1.00, roll:  0.00 },
     { t: 1.9,  throttle: 0.52, yaw:  0.00, pitch: -0.95, roll:  0.00 },
     { t: 2.2,  throttle: 0.68, yaw:  0.00, pitch: -0.60, roll:  0.00 },
-    // LOOKBACK — now flying opposite direction; brief level pause for camera
-    { t: 2.5,  throttle: 0.68, yaw:  0.00, pitch:  0.00, roll:  0.00 },
+    // LOOKBACK — yaw whip to swing the camera back toward where you came from
+    { t: 2.5,  throttle: 0.68, yaw:  0.70, pitch:  0.00, roll:  0.00 },
+    { t: 2.68, throttle: 0.68, yaw:  0.70, pitch:  0.00, roll:  0.00 },
     { t: 2.8,  throttle: 0.67, yaw:  0.00, pitch:  0.00, roll:  0.00 },
     // JUICY FLICK — throttle blip, pitch snap to inverted
     { t: 2.95, throttle: 0.88, yaw:  0.00, pitch:  0.00, roll:  0.00 },
