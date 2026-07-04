@@ -578,8 +578,30 @@ document.addEventListener('keydown', e => {
       if (searchInput) searchInput.focus();
       break;
     }
+    case 'j':
+    case 'J':
+      e.preventDefault();
+      navigateMove(1);
+      break;
+    case 'k':
+    case 'K':
+      e.preventDefault();
+      navigateMove(-1);
+      break;
   }
 });
+
+// Move to the next/previous move card among those currently visible
+// (respects the active search/difficulty filter), wrapping at the ends.
+function navigateMove(direction) {
+  const cards = Array.from(document.querySelectorAll('.move-card'))
+    .filter(c => c.style.display !== 'none');
+  if (!cards.length) return;
+  const activeIdx = cards.findIndex(c => c.classList.contains('active'));
+  const nextIdx   = activeIdx === -1 ? 0 : (activeIdx + direction + cards.length) % cards.length;
+  const move = MOVES.find(m => m.id === cards[nextIdx].dataset.id);
+  if (move) loadMove(move);
+}
 
 // ── Resize Handle ──────────────────────────────────────────
 (function initResize() {

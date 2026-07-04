@@ -197,7 +197,7 @@ Bawat move ay may sariling file sa `js/moves/` na naka-export ang keyframe data.
 - Naka-highlight ang aktibong move
 - Move info panel sa ilalim ng canvases: pangalan, difficulty, paliwanag, listahan ng tips
 - Playback bar: scrubber (input range), play/pause toggle, speed buttons
-- Keyboard shortcuts: `Space` = play/pause, `←`/`→` = step frame, `[`/`]` = speed
+- Keyboard shortcuts: `Space` = play/pause, `←`/`→` = step frame, `[`/`]` = speed, `J`/`K` = sunod/nakaraang move
 
 ---
 

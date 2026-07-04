@@ -24,6 +24,10 @@ import juicyTrackingLookback  from './juicy-tracking-lookback.js';
 import juicyFlickRewindIys    from './juicy-flick-rewind-iys.js';
 import ejectLookbackIys       from './eject-lookback-iys.js';
 import roll                   from './roll.js';
+import halfMattyFlip          from './half-matty-flip.js';
+import iysRewind              from './iys-rewind.js';
+import splitSYawSpin          from './split-s-yaw-spin.js';
+import rapidLookbackDoubleRoll from './rapid-lookback-double-roll.js';
 
 export const MOVES = [
   // Beginner
@@ -35,6 +39,7 @@ export const MOVES = [
   powerLoop,
   immelmann,
   mattyFlip,
+  halfMattyFlip,
   knifeEdge,
   reverseKnifeEdge,
   splitSRewind,
@@ -44,11 +49,14 @@ export const MOVES = [
   trippySpin,
   bowtie,
   invertedYawSpin,
+  iysRewind,
   somermatty,
   maztaBounce,
   delayedFrontFlip,
   lookbackLoop,
+  rapidLookbackDoubleRoll,
   juicyTrackingLookback,
+  splitSYawSpin,
   // Pro
   sbang,
   sbangLookback,

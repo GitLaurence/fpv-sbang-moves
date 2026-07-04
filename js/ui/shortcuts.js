@@ -11,6 +11,7 @@ const SHORTCUTS = [
   { keys: ['End'],            desc: 'Pumunta sa dulo' },
   { keys: ['[', ']'],         desc: 'Baguhin ang playback speed' },
   { keys: ['L'],              desc: 'I-toggle ang loop mode' },
+  { keys: ['J', 'K'],         desc: 'Sunod / nakaraang move' },
   { keys: ['M'],              desc: 'I-mute / i-unmute ang audio' },
   { keys: ['G'],              desc: 'I-toggle ang ghost trail' },
   { keys: ['/'],              desc: 'I-focus ang search box' },
