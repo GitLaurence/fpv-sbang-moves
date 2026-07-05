@@ -54,6 +54,40 @@
 .category-group[data-level="advanced"]     .category-dot { background: var(--diff-advanced); }
 .category-group[data-level="pro"]          .category-dot { background: var(--diff-pro); }
 
+/* ── Sidebar Progress ─────────────────────────────────────── */
+.sidebar-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.sidebar-progress-track {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-raised);
+  overflow: hidden;
+}
+
+.sidebar-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: var(--radius-pill);
+  background: var(--accent-primary);
+  box-shadow: 0 0 6px rgba(0, 245, 212, 0.5);
+  transition: width var(--dur-slow) var(--ease-snap);
+}
+
+.sidebar-progress-text {
+  font-family: var(--font-osd);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ── Move Card ────────────────────────────────────────────── */
 .move-card {
   display: flex;
@@ -89,6 +123,45 @@
   background: var(--bg-raised);
   border-color: rgba(0, 245, 212, 0.2);
   box-shadow: var(--glow-subtle);
+}
+
+.move-card.learned {
+  opacity: 0.7;
+}
+
+.move-card.learned:hover,
+.move-card.learned.active {
+  opacity: 1;
+}
+
+/* Learned toggle checkbox */
+.move-card-check {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap),
+    color var(--dur-fast) var(--ease-snap);
+}
+
+.move-card-check:hover {
+  border-color: var(--accent-primary);
+}
+
+.move-card-check.learned {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--bg-void);
 }
 
 /* Difficulty color bar on left edge */

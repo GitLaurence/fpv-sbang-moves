@@ -28,6 +28,12 @@ import halfMattyFlip          from './half-matty-flip.js';
 import iysRewind              from './iys-rewind.js';
 import splitSYawSpin          from './split-s-yaw-spin.js';
 import rapidLookbackDoubleRoll from './rapid-lookback-double-roll.js';
+import trackingFrontFlip      from './tracking-front-flip.js';
+import barani                 from './barani.js';
+import orbits                 from './orbits.js';
+import coinDrop                from './coin-drop.js';
+import sideLookbackIys        from './side-lookback-iys.js';
+import rapidSplitSIys         from './rapid-split-s-iys.js';
 
 export const MOVES = [
   // Beginner
@@ -35,6 +41,7 @@ export const MOVES = [
   roll,
   splitS,
   forwardFlip,
+  trackingFrontFlip,
   // Intermediate
   powerLoop,
   immelmann,
@@ -44,6 +51,8 @@ export const MOVES = [
   reverseKnifeEdge,
   splitSRewind,
   splitSStallTrack,
+  barani,
+  orbits,
   // Advanced
   juicySpin,
   trippySpin,
@@ -57,6 +66,8 @@ export const MOVES = [
   rapidLookbackDoubleRoll,
   juicyTrackingLookback,
   splitSYawSpin,
+  coinDrop,
+  sideLookbackIys,
   // Pro
   sbang,
   sbangLookback,
@@ -64,6 +75,7 @@ export const MOVES = [
   jackieChan,
   juicyFlickRewindIys,
   ejectLookbackIys,
+  rapidSplitSIys,
 ];
 
 export const LEVELS = {

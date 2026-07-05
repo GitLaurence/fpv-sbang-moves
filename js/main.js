@@ -9,6 +9,9 @@ import { PhaseTracker }        from './ui/phase-tracker.js';
 import { MobileSheet }         from './ui/mobile-sheet.js';
 import { AudioEngine }         from './audio.js';
 import { YouTubePlayer }       from './renderers/youtube-player.js';
+import { ProgressTracker }     from './ui/progress-tracker.js';
+
+const progress = new ProgressTracker(MOVES.length);
 
 // ── DOM refs ───────────────────────────────────────────────
 const app           = document.getElementById('app');
@@ -245,7 +248,8 @@ function buildSidebar() {
 
 function buildMoveCard(move) {
   const card = document.createElement('div');
-  card.className = 'move-card';
+  const learned = progress.isLearned(move.id);
+  card.className = 'move-card' + (learned ? ' learned' : '');
   card.dataset.id = move.id;
   card.setAttribute('role', 'button');
   card.setAttribute('tabindex', '0');
@@ -261,6 +265,11 @@ function buildMoveCard(move) {
       <div class="move-card-top">
         <div class="move-card-name">${move.name}</div>
         <div class="move-card-meta">
+          <button class="move-card-check ${learned ? 'learned' : ''}"
+                  aria-label="${learned ? 'Tinanggal bilang natutunan' : 'Markahan bilang natutunan'}"
+                  aria-pressed="${learned}" title="Natutunan na?">
+            <svg width="9" height="9"><use href="#icon-check"/></svg>
+          </button>
           <div class="diff-dots" aria-label="Difficulty ${move.difficulty} sa 5">${dots}</div>
           <div class="move-card-duration">${move.durationSec}s</div>
         </div>
@@ -273,7 +282,29 @@ function buildMoveCard(move) {
   card.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); loadMove(move); }
   });
+
+  const checkBtn = card.querySelector('.move-card-check');
+  checkBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const nowLearned = progress.toggle(move.id);
+    checkBtn.classList.toggle('learned', nowLearned);
+    checkBtn.setAttribute('aria-pressed', String(nowLearned));
+    checkBtn.setAttribute('aria-label', nowLearned ? 'Tinanggal bilang natutunan' : 'Markahan bilang natutunan');
+    card.classList.toggle('learned', nowLearned);
+    updateProgressUI();
+  });
+
   return card;
+}
+
+// ── Progress UI ──────────────────────────────────────────────
+function updateProgressUI() {
+  const fill = document.getElementById('sidebar-progress-fill');
+  const text = document.getElementById('sidebar-progress-text');
+  if (!fill || !text) return;
+  const pct = progress.total ? Math.round((progress.count / progress.total) * 100) : 0;
+  fill.style.width = `${pct}%`;
+  text.textContent = `${progress.count} / ${progress.total} natutunan`;
 }
 
 // ── Move Load ──────────────────────────────────────────────
@@ -685,6 +716,7 @@ stickRenderer.cacheTheme();
 
 // Build sidebar first so filter + sheet can reference its cards
 buildSidebar();
+updateProgressUI();
 
 // Show total move count in sidebar title
 const sidebarTitle = document.querySelector('.sidebar-title');
