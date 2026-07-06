@@ -28,6 +28,7 @@ import halfMattyFlip          from './half-matty-flip.js';
 import iysRewind              from './iys-rewind.js';
 import splitSYawSpin          from './split-s-yaw-spin.js';
 import rapidLookbackDoubleRoll from './rapid-lookback-double-roll.js';
+import coinDrop               from './coin-drop.js';
 
 export const MOVES = [
   // Beginner
@@ -64,6 +65,7 @@ export const MOVES = [
   jackieChan,
   juicyFlickRewindIys,
   ejectLookbackIys,
+  coinDrop,
 ];
 
 export const LEVELS = {
