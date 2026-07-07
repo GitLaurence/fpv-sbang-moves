@@ -102,7 +102,7 @@ const engine = new PlaybackEngine(
       }
     }
     stickRenderer.render(frame);
-    fpvRenderer.render(frame);
+    fpvRenderer.render(frame, !_ytActive);
     phaseTracker.update(frame.t);
     syncScrubber();
     if (!_ytActive) audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);

@@ -29,6 +29,7 @@ import iysRewind              from './iys-rewind.js';
 import splitSYawSpin          from './split-s-yaw-spin.js';
 import rapidLookbackDoubleRoll from './rapid-lookback-double-roll.js';
 import coinDrop               from './coin-drop.js';
+import sidewaysRewind         from './sideways-rewind.js';
 
 export const MOVES = [
   // Beginner
@@ -44,6 +45,7 @@ export const MOVES = [
   knifeEdge,
   reverseKnifeEdge,
   splitSRewind,
+  sidewaysRewind,
   splitSStallTrack,
   // Advanced
   juicySpin,

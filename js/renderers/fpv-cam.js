@@ -81,10 +81,15 @@ export class FpvCamRenderer {
     };
   }
 
-  render(frame) {
+  render(frame, sceneVisible = true) {
     const sim = deriveState(frame, this.sim);
-    this._drawScene(sim);
-    this.effects.apply(sim);
+    // Every move is now YT-video-driven, so the sky/ground scene + effects
+    // pass sits fully hidden behind the video layer most of the time —
+    // skip drawing it and only keep the HUD/OSD telemetry updating.
+    if (sceneVisible) {
+      this._drawScene(sim);
+      this.effects.apply(sim);
+    }
     this.hud.draw(sim);
   }
 
