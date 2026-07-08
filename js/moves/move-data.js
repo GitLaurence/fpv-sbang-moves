@@ -30,6 +30,14 @@ import splitSYawSpin          from './split-s-yaw-spin.js';
 import rapidLookbackDoubleRoll from './rapid-lookback-double-roll.js';
 import coinDrop               from './coin-drop.js';
 import sidewaysRewind         from './sideways-rewind.js';
+import corkscrew              from './corkscrew.js';
+import reverseWallRide        from './reverse-wall-ride.js';
+import barani                 from './barani.js';
+import trackingFrontFlip      from './tracking-front-flip.js';
+import flipRollIysCombo       from './flip-roll-iys-combo.js';
+import flipRewindIys          from './flip-rewind-iys.js';
+import sideLookbackIys        from './side-lookback-iys.js';
+import lookbackRollIys        from './lookback-roll-iys.js';
 
 export const MOVES = [
   // Beginner
@@ -47,6 +55,8 @@ export const MOVES = [
   splitSRewind,
   sidewaysRewind,
   splitSStallTrack,
+  corkscrew,
+  trackingFrontFlip,
   // Advanced
   juicySpin,
   trippySpin,
@@ -60,6 +70,9 @@ export const MOVES = [
   rapidLookbackDoubleRoll,
   juicyTrackingLookback,
   splitSYawSpin,
+  reverseWallRide,
+  barani,
+  sideLookbackIys,
   // Pro
   sbang,
   sbangLookback,
@@ -68,6 +81,9 @@ export const MOVES = [
   juicyFlickRewindIys,
   ejectLookbackIys,
   coinDrop,
+  flipRollIysCombo,
+  flipRewindIys,
+  lookbackRollIys,
 ];
 
 export const LEVELS = {
