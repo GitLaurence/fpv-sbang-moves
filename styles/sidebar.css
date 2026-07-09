@@ -225,6 +225,48 @@
   transform: translateY(-50%) translateX(0);
 }
 
+/* Practiced toggle */
+.move-card-practice-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: transparent;
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition:
+    opacity  var(--dur-fast) var(--ease-snap),
+    color    var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap),
+    background   var(--dur-fast) var(--ease-snap);
+}
+
+.move-card:hover .move-card-practice-btn,
+.move-card-practice-btn.practiced {
+  opacity: 1;
+}
+
+.move-card-practice-btn:hover {
+  border-color: var(--accent-primary);
+}
+
+.move-card-practice-btn.practiced {
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.move-card-practice-btn svg {
+  width: 11px;
+  height: 11px;
+}
+
 /* ── Sidebar Channel Attribution ─────────────────────────── */
 .sidebar-channel {
   display: flex;
@@ -272,7 +314,8 @@
   }
 
   .move-card-body,
-  .move-card-arrow {
+  .move-card-arrow,
+  .move-card-practice-btn {
     display: none;
   }
 

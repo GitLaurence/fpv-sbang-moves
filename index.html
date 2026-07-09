@@ -69,9 +69,15 @@
 
     <div class="sidebar-header">
       <span class="sidebar-title">FREESTYLE</span>
-      <button class="sidebar-icon-btn" id="btn-filter" aria-label="I-filter ang mga moves">
-        <svg width="16" height="16"><use href="#icon-filter"/></svg>
-      </button>
+      <div class="sidebar-header-actions">
+        <span class="sidebar-progress" id="sidebar-progress" aria-live="polite" title="Mga move na na-practice"></span>
+        <button class="sidebar-icon-btn" id="btn-shuffle" aria-label="Random na move (R)" title="Random na move (R)">
+          <svg width="16" height="16"><use href="#icon-shuffle"/></svg>
+        </button>
+        <button class="sidebar-icon-btn" id="btn-filter" aria-label="I-filter ang mga moves">
+          <svg width="16" height="16"><use href="#icon-filter"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="sidebar-scroll" id="move-list">

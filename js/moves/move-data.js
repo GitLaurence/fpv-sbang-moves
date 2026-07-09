@@ -38,6 +38,16 @@ import flipRollIysCombo       from './flip-roll-iys-combo.js';
 import flipRewindIys          from './flip-rewind-iys.js';
 import sideLookbackIys        from './side-lookback-iys.js';
 import lookbackRollIys        from './lookback-roll-iys.js';
+import smoothTurn             from './smooth-turn.js';
+import flatYawSpin            from './flat-yaw-spin.js';
+import sideLockRewind         from './side-lock-rewind.js';
+import juicyCartwheel         from './juicy-cartwheel.js';
+import wallRide               from './wall-ride.js';
+import powerLoopObstacle      from './power-loop-obstacle.js';
+import laserFlip              from './laser-flip.js';
+import outwardSideLockRewind  from './outward-side-lock-rewind.js';
+import reverseOrbit           from './reverse-orbit.js';
+import splitSIysCombo         from './split-s-iys-combo.js';
 
 export const MOVES = [
   // Beginner
@@ -45,6 +55,8 @@ export const MOVES = [
   roll,
   splitS,
   forwardFlip,
+  smoothTurn,
+  flatYawSpin,
   // Intermediate
   powerLoop,
   immelmann,
@@ -57,6 +69,10 @@ export const MOVES = [
   splitSStallTrack,
   corkscrew,
   trackingFrontFlip,
+  sideLockRewind,
+  juicyCartwheel,
+  wallRide,
+  powerLoopObstacle,
   // Advanced
   juicySpin,
   trippySpin,
@@ -73,6 +89,9 @@ export const MOVES = [
   reverseWallRide,
   barani,
   sideLookbackIys,
+  laserFlip,
+  outwardSideLockRewind,
+  reverseOrbit,
   // Pro
   sbang,
   sbangLookback,
@@ -84,6 +103,7 @@ export const MOVES = [
   flipRollIysCombo,
   flipRewindIys,
   lookbackRollIys,
+  splitSIysCombo,
 ];
 
 export const LEVELS = {

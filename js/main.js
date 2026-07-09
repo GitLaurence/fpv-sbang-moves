@@ -9,6 +9,7 @@ import { PhaseTracker }        from './ui/phase-tracker.js';
 import { MobileSheet }         from './ui/mobile-sheet.js';
 import { AudioEngine }         from './audio.js';
 import { YouTubePlayer }       from './renderers/youtube-player.js';
+import { ProgressStore }       from './progress.js';
 
 // ── DOM refs ───────────────────────────────────────────────
 const app           = document.getElementById('app');
@@ -41,6 +42,15 @@ const resizeHandle  = document.getElementById('resize-handle');
 const mainEl        = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
 const srStatus      = document.getElementById('sr-status');
+const btnShuffle     = document.getElementById('btn-shuffle');
+const sidebarProgress = document.getElementById('sidebar-progress');
+
+// ── Progress Tracking ──────────────────────────────────────
+const progress = new ProgressStore();
+
+function updateProgressBadge() {
+  if (sidebarProgress) sidebarProgress.textContent = `${progress.count()}/${MOVES.length}`;
+}
 
 // ── Renderers ──────────────────────────────────────────────
 const stickCanvas   = document.getElementById('stick-canvas');
@@ -255,8 +265,15 @@ function buildMoveCard(move) {
     `<div class="diff-dot ${i < move.difficulty ? 'filled' : ''}"></div>`
   ).join('');
 
+  const practiced = progress.isPracticed(move.id);
+
   card.innerHTML = `
     <div class="move-card-bar"></div>
+    <button class="move-card-practice-btn ${practiced ? 'practiced' : ''}"
+            aria-label="Markahan ang ${move.name} bilang na-practice"
+            aria-pressed="${practiced}" title="Na-practice na?">
+      <svg><use href="#icon-check"/></svg>
+    </button>
     <div class="move-card-body">
       <div class="move-card-top">
         <div class="move-card-name">${move.name}</div>
@@ -273,6 +290,16 @@ function buildMoveCard(move) {
   card.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); loadMove(move); }
   });
+
+  const practiceBtn = card.querySelector('.move-card-practice-btn');
+  practiceBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const isPracticed = progress.toggle(move.id);
+    practiceBtn.classList.toggle('practiced', isPracticed);
+    practiceBtn.setAttribute('aria-pressed', String(isPracticed));
+    updateProgressBadge();
+  });
+
   return card;
 }
 
@@ -346,6 +373,21 @@ function loadMove(move) {
   void fpvWrap.offsetWidth; // force reflow
   fpvWrap.classList.add('canvas-enter');
   stickWrap.classList.add('canvas-enter');
+
+  // Deep-linkable URL — shareable link to this specific move
+  if (location.hash !== `#${move.id}`) {
+    history.replaceState(null, '', `#${move.id}`);
+  }
+}
+
+// Pick a random move, avoiding an immediate repeat when possible
+function pickRandomMove() {
+  if (MOVES.length < 2) return MOVES[0];
+  let choice;
+  do {
+    choice = MOVES[Math.floor(Math.random() * MOVES.length)];
+  } while (choice.id === engine.move?.id);
+  return choice;
 }
 
 // ── Scrubber Ticks & Phase Labels ─────────────────────────
@@ -588,8 +630,14 @@ document.addEventListener('keydown', e => {
       e.preventDefault();
       navigateMove(-1);
       break;
+    case 'r':
+    case 'R':
+      btnShuffle.click();
+      break;
   }
 });
+
+btnShuffle?.addEventListener('click', () => loadMove(pickRandomMove()));
 
 // Move to the next/previous move card among those currently visible
 // (respects the active search/difficulty filter), wrapping at the ends.
@@ -674,7 +722,9 @@ function dismissIntro() {
   app.hidden = false;
   app.style.animation = 'fade-in 0.4s cubic-bezier(0.16,1,0.3,1) both';
   setTimeout(() => introScreen.remove(), 450);
-  try { loadMove(MOVES[0]); } catch (e) { console.error('loadMove error:', e); }
+  // Deep link — open directly to a shared move via #move-id if present
+  const linkedMove = MOVES.find(m => m.id === location.hash.slice(1));
+  try { loadMove(linkedMove ?? MOVES[0]); } catch (e) { console.error('loadMove error:', e); }
 }
 
 requestAnimationFrame(() => { introBar.style.width = '100%'; });
@@ -689,6 +739,7 @@ buildSidebar();
 // Show total move count in sidebar title
 const sidebarTitle = document.querySelector('.sidebar-title');
 if (sidebarTitle) sidebarTitle.textContent = `FREESTYLE · ${MOVES.length}`;
+updateProgressBadge();
 
 // Init UI modules that depend on sidebar DOM being ready
 new SidebarFilter(document.getElementById('move-list'));

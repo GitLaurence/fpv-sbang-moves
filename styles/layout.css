@@ -44,6 +44,23 @@ body {
   color: var(--text-primary);
 }
 
+.sidebar-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sidebar-progress {
+  font-family: var(--font-osd);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+  white-space: nowrap;
+}
+
 .sidebar-icon-btn {
   width: 28px;
   height: 28px;
@@ -306,6 +323,8 @@ body {
   }
 
   .sidebar-title,
+  .sidebar-progress,
+  #btn-shuffle,
   .sidebar-scroll .category-label span,
   .move-card-desc,
   .move-card-duration {
