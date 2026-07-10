@@ -26,6 +26,9 @@ export class PlaybackEngine {
 
     this._rafId   = null;
     this._lastNow = null;
+
+    // Reusable output object for _interpolate — avoids a per-frame allocation.
+    this._frameBuf = { t: 0, throttle: 0, yaw: 0, pitch: 0, roll: 0 };
   }
 
   // ── Public API ─────────────────────────────────────────────
@@ -124,10 +127,15 @@ export class PlaybackEngine {
   }
 
   _interpolate(t) {
+    const out = this._frameBuf;
     const kfs = this._move.keyframes;
-    if (!kfs || kfs.length === 0) return { t, throttle: 0, yaw: 0, pitch: 0, roll: 0 };
-    if (t <= kfs[0].t)                   return { ...kfs[0], t };
-    if (t >= kfs[kfs.length - 1].t)      return { ...kfs[kfs.length - 1], t };
+
+    if (!kfs || kfs.length === 0) {
+      out.t = t; out.throttle = 0; out.yaw = 0; out.pitch = 0; out.roll = 0;
+      return out;
+    }
+    if (t <= kfs[0].t)              return this._copyFrame(kfs[0], t);
+    if (t >= kfs[kfs.length - 1].t) return this._copyFrame(kfs[kfs.length - 1], t);
 
     // Find surrounding pair
     let i = 0;
@@ -143,10 +151,8 @@ export class PlaybackEngine {
     const segDur = b.t - a.t;
     const u      = segDur > 0 ? (t - a.t) / segDur : 0;
 
-    const channels = ['throttle', 'yaw', 'pitch', 'roll'];
-    const out = { t };
-
-    for (const ch of channels) {
+    out.t = t;
+    for (const ch of ['throttle', 'yaw', 'pitch', 'roll']) {
       out[ch] = catmullRom(
         p0[ch] ?? a[ch],
         a[ch],
@@ -156,6 +162,16 @@ export class PlaybackEngine {
       );
     }
 
+    return out;
+  }
+
+  _copyFrame(kf, t) {
+    const out = this._frameBuf;
+    out.t        = t;
+    out.throttle = kf.throttle;
+    out.yaw      = kf.yaw;
+    out.pitch    = kf.pitch;
+    out.roll     = kf.roll;
     return out;
   }
 }

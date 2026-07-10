@@ -9,6 +9,9 @@ const CHANNEL_COLORS = {
   roll:     { hex: '#00f5d4', rgb: '0,245,212'   },
 };
 
+// Maps meter DOM key -> stick channel name (module scope: avoid re-allocating per frame)
+const METER_CHANNEL = { t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' };
+
 // ── StickCamRenderer ───────────────────────────────────────
 export class StickCamRenderer {
   constructor(canvas) {
@@ -35,6 +38,24 @@ export class StickCamRenderer {
 
     // Build meter DOM once
     this._buildMeters();
+
+    // Cache theme-derived colors instead of reading computed style every frame
+    this._cacheThemeColors();
+    document.addEventListener('themechange', () => this._cacheThemeColors());
+  }
+
+  // ── Trail / Theme Reset API ─────────────────────────────────
+
+  /** Reset live trail + smoothing state (public — avoids callers poking private fields) */
+  resetTrails() {
+    this._leftTrail  = [];
+    this._rightTrail = [];
+    this._smooth      = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+  }
+
+  _cacheThemeColors() {
+    this._colBgPanel = getComputedStyle(document.documentElement)
+      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
   }
 
   // ── Ghost Trail API ───────────────────────────────────────
@@ -63,6 +84,13 @@ export class StickCamRenderer {
     this._recording  = false;
     this._recLeft    = [];
     this._recRight   = [];
+  }
+
+  /** Discard an in-progress recording without touching the committed ghost trail */
+  cancelRecording() {
+    this._recording = false;
+    this._recLeft   = [];
+    this._recRight  = [];
   }
 
   // ── Public ────────────────────────────────────────────────
@@ -126,8 +154,7 @@ export class StickCamRenderer {
     ctx.clearRect(0, 0, W, canvas.height);
 
     // Panel background
-    ctx.fillStyle = getComputedStyle(document.documentElement)
-      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
+    ctx.fillStyle = this._colBgPanel;
     ctx.fillRect(0, 0, W, canvas.height);
 
     const halfW   = W / 2;
@@ -378,7 +405,7 @@ export class StickCamRenderer {
 
       val.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
       val.style.color = Math.abs(v) > 0.9
-        ? CHANNEL_COLORS[{ t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' }[key]].hex
+        ? CHANNEL_COLORS[METER_CHANNEL[key]].hex
         : '';
     }
   }

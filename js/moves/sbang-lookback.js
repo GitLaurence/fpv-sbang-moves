@@ -33,10 +33,10 @@ export default {
     // Roll to inverted — snap full roll, chop throttle
     { t: 0.78, throttle: 0.32, yaw:  0.00, pitch:  0.00, roll:  1.00 },
     { t: 1.0,  throttle: 0.28, yaw:  0.00, pitch:  0.00, roll:  1.00 },
-    // DEAD STOP — fully inverted, all sticks center, brief pause
-    { t: 1.18, throttle: 0.28, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    { t: 1.42, throttle: 0.28, yaw:  0.00, pitch:  0.00, roll:  0.00 },
-    // SPLIT-S pull — pitch back, arc nose through bottom half-loop
+    // DEAD STOP — fully inverted, camera lookback yaw turn, brief pause
+    { t: 1.18, throttle: 0.28, yaw:  0.65, pitch:  0.00, roll:  0.00 },
+    { t: 1.42, throttle: 0.28, yaw:  0.65, pitch:  0.00, roll:  0.00 },
+    // SPLIT-S pull — center yaw, pitch back arcs nose through bottom half-loop
     { t: 1.55, throttle: 0.35, yaw:  0.00, pitch: -1.00, roll:  0.00 },
     { t: 1.9,  throttle: 0.52, yaw:  0.00, pitch: -0.95, roll:  0.00 },
     { t: 2.2,  throttle: 0.68, yaw:  0.00, pitch: -0.60, roll:  0.00 },

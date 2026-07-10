@@ -40,6 +40,7 @@ const moveInfoEl    = document.getElementById('move-info');
 const resizeHandle  = document.getElementById('resize-handle');
 const mainEl        = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
+const srStatus       = document.getElementById('sr-status');
 
 // ── Renderers ──────────────────────────────────────────────
 const stickCanvas   = document.getElementById('stick-canvas');
@@ -92,8 +93,9 @@ const engine = new PlaybackEngine(
           // Seek YT back instead of letting drift-correction undo the loop.
           if (prevT >= 0 && prevT - frame.t > engine.duration * 0.4) {
             ytPlayer.seek(frame.t);
-          } else if (Math.abs(ytTime - frame.t) > 0.06) {
+          } else if (!scrubbing && Math.abs(ytTime - frame.t) > 0.06) {
             // Drift: pull engine to match YT's authoritative clock
+            // (skipped mid-scrub so the drift-correction seek doesn't fight the user's drag)
             engine.seek(Math.max(0, ytTime));
             return;
           }
@@ -104,22 +106,20 @@ const engine = new PlaybackEngine(
     fpvRenderer.render(frame);
     phaseTracker.update(frame.t);
     syncScrubber();
-    audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
+    if (!_ytActive) {
+      audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
+    }
     audio.resume();
   },
-  // onEnd — called when engine reaches durationSec (loop=false path)
+  // onEnd — called when engine reaches durationSec (loop=false path only;
+  // the loop=true path wraps inside PlaybackEngine._tick without calling this)
   () => {
     updatePlayBtn();
     pulseScrubberEnd();
     audio.silence();
     if (_ytActive) ytPlayer.pause();
     _ytLastEngineT = -1;
-    if (engine.isLooping && ghostEnabled) {
-      stickRenderer.commitRecording();
-      stickRenderer.startRecording();
-    } else if (ghostEnabled) {
-      stickRenderer.commitRecording();
-    }
+    if (ghostEnabled) stickRenderer.commitRecording();
   }
 );
 
@@ -176,6 +176,14 @@ ytPlayer.onStateChange((state) => {
   }
 });
 
+// YT playback error (150=embed-blocked, 101=not found, 5=HTML5 error) — show
+// a visible message instead of silently falling back to a black box.
+ytPlayer.onError(() => {
+  if (!_ytActive) return;
+  ytBadge.textContent = '⚠ VIDEO UNAVAILABLE';
+  ytBadge.classList.add('yt-error');
+});
+
 // ── Helpers ────────────────────────────────────────────────
 function fmtTime(sec) {
   const m  = Math.floor(sec / 60);
@@ -189,6 +197,7 @@ function updatePlayBtn() {
     ? '<use href="#icon-pause"/>'
     : '<use href="#icon-play"/>';
   btnPlay.setAttribute('aria-label', engine.isPlaying ? 'I-pause' : 'I-play');
+  if (srStatus) srStatus.textContent = engine.isPlaying ? 'Playing' : 'Paused';
 }
 
 function syncScrubber() {
@@ -277,9 +286,7 @@ function loadMove(move) {
   if (activeCard) activeCard.classList.add('active');
 
   // Reset renderers for fresh start
-  stickRenderer._leftTrail  = [];
-  stickRenderer._rightTrail = [];
-  stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+  stickRenderer.resetTrails();
   stickRenderer.clearGhost();
   fpvRenderer.resetSim();
 
@@ -292,6 +299,7 @@ function loadMove(move) {
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
   ytBadge.textContent        = '▶ YT VIDEO';
+  ytBadge.classList.remove('yt-error');
   fpvBadge.style.display     = _ytActive ? 'none' : '';
   if (_ytActive) {
     ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);
@@ -428,7 +436,12 @@ btnGhost.addEventListener('click', () => {
   }
 });
 
-btnSkipStart.addEventListener('click', () => engine.skipToStart());
+btnSkipStart.addEventListener('click', () => {
+  engine.skipToStart();
+  // Discard any in-progress ghost recording so replaying doesn't resume
+  // a stale partial buffer from the previous run.
+  stickRenderer.cancelRecording();
+});
 btnSkipEnd.addEventListener('click',   () => engine.skipToEnd());
 btnStepBack.addEventListener('click',  () => engine.stepBack());
 btnStepFwd.addEventListener('click',   () => engine.stepForward());
@@ -499,6 +512,7 @@ themeBtns.forEach(btn => {
       b.classList.toggle('active', b === btn);
       b.setAttribute('aria-pressed', String(b === btn));
     });
+    document.dispatchEvent(new CustomEvent('themechange'));
   });
 });
 
@@ -561,6 +575,10 @@ document.addEventListener('keydown', e => {
 // ── Resize Handle ──────────────────────────────────────────
 (function initResize() {
   let dragging = false;
+  // Tracked directly in percent — getComputedStyle(mainEl).gridTemplateColumns
+  // resolves to pixel values, not the original percentages, so reading it
+  // back and reusing it as a percentage (the old approach) blew up the split.
+  let splitPct = 50;
 
   resizeHandle.addEventListener('mousedown', e => {
     dragging = true;
@@ -573,9 +591,8 @@ document.addEventListener('keydown', e => {
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
     const rect = mainEl.getBoundingClientRect();
-    const pct  = Math.max(20, Math.min(80, (e.clientX - rect.left) / rect.width * 100));
-    const hPct = (4 / rect.width) * 100;
-    mainEl.style.gridTemplateColumns = `${pct}% ${hPct}% 1fr`;
+    splitPct = Math.max(20, Math.min(80, (e.clientX - rect.left) / rect.width * 100));
+    mainEl.style.gridTemplateColumns = `${splitPct}% var(--resize-handle-w) 1fr`;
     // Notify renderers
     stickRenderer.resize();
     fpvRenderer.resize();
@@ -590,23 +607,27 @@ document.addEventListener('keydown', e => {
   });
 
   resizeHandle.addEventListener('keydown', e => {
-    const style  = getComputedStyle(mainEl);
-    const curPct = parseFloat(style.gridTemplateColumns);
-    const step   = 5;
-    if (e.key === 'ArrowLeft')
-      mainEl.style.gridTemplateColumns = `${Math.max(20, curPct - step)}% 4px 1fr`;
-    if (e.key === 'ArrowRight')
-      mainEl.style.gridTemplateColumns = `${Math.min(80, curPct + step)}% 4px 1fr`;
+    const step = 5;
+    if (e.key === 'ArrowLeft') {
+      splitPct = Math.max(20, splitPct - step);
+    } else if (e.key === 'ArrowRight') {
+      splitPct = Math.min(80, splitPct + step);
+    } else {
+      return;
+    }
+    mainEl.style.gridTemplateColumns = `${splitPct}% var(--resize-handle-w) 1fr`;
+    stickRenderer.resize();
+    fpvRenderer.resize();
   });
 })();
 
 // ── Canvas Resize Observer ─────────────────────────────────
+// Elements are cached at module scope (fpvCanvas/osdCanvas/stickCanvas
+// above) rather than re-queried by ID on every resize callback.
+const resizableCanvases = [fpvCanvas, osdCanvas, stickCanvas];
 const ro = new ResizeObserver(() => {
-  const ids = _ytActive
-    ? ['osd-canvas', 'stick-canvas']
-    : ['fpv-canvas', 'osd-canvas', 'stick-canvas'];
-  ids.forEach(id => {
-    const canvas = document.getElementById(id);
+  const canvases = _ytActive ? [osdCanvas, stickCanvas] : resizableCanvases;
+  canvases.forEach(canvas => {
     if (!canvas) return;
     canvas.width  = canvas.offsetWidth  * devicePixelRatio;
     canvas.height = canvas.offsetHeight * devicePixelRatio;
