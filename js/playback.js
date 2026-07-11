@@ -12,6 +12,8 @@
 // onFrame(frame)  — called every rAF tick with interpolated frame
 // onEnd()         — called when playback reaches the end (loop=false)
 
+const CHANNELS = ['throttle', 'yaw', 'pitch', 'roll'];
+
 export class PlaybackEngine {
   constructor(onFrame, onEnd) {
     this._onFrame = onFrame;
@@ -26,6 +28,10 @@ export class PlaybackEngine {
 
     this._rafId   = null;
     this._lastNow = null;
+
+    // Reused per-frame output object — avoids a GC allocation on every tick.
+    // Safe because callers (onFrame) consume the values synchronously.
+    this._frame = { t: 0, throttle: 0, yaw: 0, pitch: 0, roll: 0 };
   }
 
   // ── Public API ─────────────────────────────────────────────
@@ -125,9 +131,15 @@ export class PlaybackEngine {
 
   _interpolate(t) {
     const kfs = this._move.keyframes;
-    if (!kfs || kfs.length === 0) return { t, throttle: 0, yaw: 0, pitch: 0, roll: 0 };
-    if (t <= kfs[0].t)                   return { ...kfs[0], t };
-    if (t >= kfs[kfs.length - 1].t)      return { ...kfs[kfs.length - 1], t };
+    const out = this._frame;
+    out.t = t;
+
+    if (!kfs || kfs.length === 0) {
+      out.throttle = out.yaw = out.pitch = out.roll = 0;
+      return out;
+    }
+    if (t <= kfs[0].t)              return this._fillFrom(out, kfs[0]);
+    if (t >= kfs[kfs.length - 1].t) return this._fillFrom(out, kfs[kfs.length - 1]);
 
     // Find surrounding pair
     let i = 0;
@@ -143,10 +155,7 @@ export class PlaybackEngine {
     const segDur = b.t - a.t;
     const u      = segDur > 0 ? (t - a.t) / segDur : 0;
 
-    const channels = ['throttle', 'yaw', 'pitch', 'roll'];
-    const out = { t };
-
-    for (const ch of channels) {
+    for (const ch of CHANNELS) {
       out[ch] = catmullRom(
         p0[ch] ?? a[ch],
         a[ch],
@@ -156,6 +165,11 @@ export class PlaybackEngine {
       );
     }
 
+    return out;
+  }
+
+  _fillFrom(out, kf) {
+    for (const ch of CHANNELS) out[ch] = kf[ch] ?? 0;
     return out;
   }
 }

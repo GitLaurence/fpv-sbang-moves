@@ -1,19 +1,24 @@
-import splitS          from './split-s.js';
-import powerLoop       from './power-loop.js';
-import mattyFlip       from './matty-flip.js';
-import knifeEdge       from './knife-edge.js';
-import juicySpin       from './juicy-spin.js';
-import trippySpin      from './trippy-spin.js';
-import bowtie          from './bowtie.js';
-import sbang           from './sbang.js';
-import stall           from './stall.js';
-import invertedYawSpin from './inverted-yaw-spin.js';
-import immelmann       from './immelmann.js';
-import sbangLookback   from './sbang-lookback.js';
+import splitS              from './split-s.js';
+import powerLoop           from './power-loop.js';
+import mattyFlip           from './matty-flip.js';
+import knifeEdge           from './knife-edge.js';
+import juicySpin           from './juicy-spin.js';
+import trippySpin          from './trippy-spin.js';
+import bowtie               from './bowtie.js';
+import sbang                from './sbang.js';
+import stall                from './stall.js';
+import invertedYawSpin      from './inverted-yaw-spin.js';
+import immelmann            from './immelmann.js';
+import sbangLookback        from './sbang-lookback.js';
+import barrelRoll           from './barrel-roll.js';
+import jackieChan           from './jackie-chan.js';
+import somerMatty           from './somer-matty.js';
+import juicyTrackingLookback from './juicy-tracking-lookback.js';
 
 export const MOVES = [
   // Beginner
   stall,
+  barrelRoll,
   splitS,
   // Intermediate
   powerLoop,
@@ -25,9 +30,12 @@ export const MOVES = [
   trippySpin,
   bowtie,
   invertedYawSpin,
+  jackieChan,
   // Pro
   sbang,
   sbangLookback,
+  somerMatty,
+  juicyTrackingLookback,
 ];
 
 export const LEVELS = {

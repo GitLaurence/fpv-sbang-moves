@@ -9,6 +9,8 @@ const CHANNEL_COLORS = {
   roll:     { hex: '#00f5d4', rgb: '0,245,212'   },
 };
 
+const METER_KEY_TO_CHANNEL = { t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' };
+
 // ── StickCamRenderer ───────────────────────────────────────
 export class StickCamRenderer {
   constructor(canvas) {
@@ -35,6 +37,17 @@ export class StickCamRenderer {
 
     // Build meter DOM once
     this._buildMeters();
+
+    // Cached theme colors — refreshed on construction and on theme change
+    this._colBgPanel = '#0b0d12';
+    this._cacheThemeColors();
+  }
+
+  // ── Theme Colors ──────────────────────────────────────────
+
+  _cacheThemeColors() {
+    this._colBgPanel = getComputedStyle(document.documentElement)
+      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
   }
 
   // ── Ghost Trail API ───────────────────────────────────────
@@ -63,6 +76,15 @@ export class StickCamRenderer {
     this._recording  = false;
     this._recLeft    = [];
     this._recRight   = [];
+  }
+
+  /** Reset live/ghost trail state for a fresh move load or restart. */
+  resetGhost() {
+    this._leftTrail  = [];
+    this._rightTrail = [];
+    this._smooth      = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+    this._recording    = false;
+    this.clearGhost();
   }
 
   // ── Public ────────────────────────────────────────────────
@@ -125,9 +147,8 @@ export class StickCamRenderer {
 
     ctx.clearRect(0, 0, W, canvas.height);
 
-    // Panel background
-    ctx.fillStyle = getComputedStyle(document.documentElement)
-      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
+    // Panel background — cached, refreshed on theme change (see _cacheThemeColors)
+    ctx.fillStyle = this._colBgPanel;
     ctx.fillRect(0, 0, W, canvas.height);
 
     const halfW   = W / 2;
@@ -378,7 +399,7 @@ export class StickCamRenderer {
 
       val.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
       val.style.color = Math.abs(v) > 0.9
-        ? CHANNEL_COLORS[{ t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' }[key]].hex
+        ? CHANNEL_COLORS[METER_KEY_TO_CHANNEL[key]].hex
         : '';
     }
   }

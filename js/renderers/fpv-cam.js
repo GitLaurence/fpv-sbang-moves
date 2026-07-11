@@ -64,8 +64,9 @@ export class FpvCamRenderer {
       yaw:        0,
     };
 
-    // Previous frame canvas for motion blur persistence
-    this._prevImageData = null;
+    // Motion blur is done by letting the canvas retain its own pixels
+    // (fading them with a low-alpha fill) instead of getImageData/putImageData.
+    this._clearNeeded = true;
   }
 
   resetSim() {
@@ -82,7 +83,7 @@ export class FpvCamRenderer {
       roll:       0,
       yaw:        0,
     };
-    this._prevImageData = null;
+    this._clearNeeded = true;
   }
 
   render(frame) {
@@ -93,7 +94,7 @@ export class FpvCamRenderer {
   }
 
   resize() {
-    this._prevImageData = null;
+    this._clearNeeded = true;
     if (this.sim.prevT !== null) this._drawScene(this.sim);
     this.hud.resize();
   }
@@ -106,15 +107,17 @@ export class FpvCamRenderer {
     const H = canvas.height;
     if (W <= 0 || H <= 0) return;
 
-    // Motion blur: paint previous frame at low alpha before redrawing
+    // Motion blur: fade the canvas's own retained pixels at low alpha instead of
+    // clearing, so the previous frame bleeds through slightly (no getImageData/
+    // putImageData readback — the GPU handles the compositing).
     const speed       = sim.speed;
     const blurAmount  = clamp((speed - 40) / 100, 0, 0.22);
-    if (blurAmount > 0 && this._prevImageData) {
-      ctx.putImageData(this._prevImageData, 0, 0);
+    if (blurAmount > 0 && !this._clearNeeded) {
       ctx.fillStyle = `rgba(5,6,8,${blurAmount})`;
       ctx.fillRect(0, 0, W, H);
     } else {
       ctx.clearRect(0, 0, W, H);
+      this._clearNeeded = false;
     }
 
     // The scene rotates with roll and shifts with pitch
@@ -140,9 +143,6 @@ export class FpvCamRenderer {
     this._drawPitchLadder(ctx, half, horizonY, diag, sim.pitchDeg);
 
     ctx.restore();
-
-    // Store this frame for next blur pass
-    this._prevImageData = ctx.getImageData(0, 0, W, H);
   }
 
   _drawSky(ctx, half, horizonY, diag) {

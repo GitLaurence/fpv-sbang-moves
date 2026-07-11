@@ -2,11 +2,14 @@
 // Bottom sheet for move selection on mobile (< 768px).
 // Clones the sidebar move list into a slide-up panel.
 
+import { trapFocus } from './focus-trap.js';
+
 export class MobileSheet {
   constructor(onMoveSelect) {
     this._onSelect = onMoveSelect;
     this._sheet    = null;
     this._backdrop = null;
+    this._trap     = null;
     this._build();
   }
 
@@ -16,12 +19,18 @@ export class MobileSheet {
     this._sheet.classList.add('open');
     document.body.style.overflow = 'hidden';
     this._sheet.querySelector('.mobile-sheet-list')?.focus();
+    this._triggerBtn?.setAttribute('aria-expanded', 'true');
+    this._trap = trapFocus(this._sheet);
   }
 
   close() {
+    if (!this._sheet.classList.contains('open')) return;
     this._backdrop.classList.remove('visible');
     this._sheet.classList.remove('open');
     document.body.style.overflow = '';
+    this._triggerBtn?.setAttribute('aria-expanded', 'false');
+    this._trap?.release();
+    this._trap = null;
   }
 
   toggle() {
@@ -75,8 +84,8 @@ export class MobileSheet {
     this._sheet = sheet;
 
     // Wire mobile button
-    document.getElementById('mobile-moves-btn')
-      ?.addEventListener('click', () => this.toggle());
+    this._triggerBtn = document.getElementById('mobile-moves-btn');
+    this._triggerBtn?.addEventListener('click', () => this.toggle());
 
     // Escape to close
     document.addEventListener('keydown', e => {

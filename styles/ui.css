@@ -329,6 +329,28 @@ kbd {
   font-size: 9px;
 }
 
+/* ── YouTube Error Badge ──────────────────────────────────── */
+
+#yt-badge.yt-error {
+  background: rgba(255, 200, 0, 0.18);
+  border-color: rgba(255, 200, 0, 0.4);
+  color: #ffcc00;
+}
+
+/* ── Screen-Reader-Only Utility ───────────────────────────── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ── Phase Badge on FPV Header ───────────────────────────── */
 
 .phase-badge {
@@ -342,6 +364,10 @@ kbd {
   padding: 2px 8px;
   opacity: 0;
   transform: scale(0.8);
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   transition:
     opacity   var(--dur-fast) var(--ease-snap),
     transform var(--dur-fast) var(--ease-bounce);
