@@ -10,6 +10,12 @@ import stall           from './stall.js';
 import invertedYawSpin from './inverted-yaw-spin.js';
 import immelmann       from './immelmann.js';
 import sbangLookback   from './sbang-lookback.js';
+import diveBomb         from './dive-bomb.js';
+import orbit            from './orbit.js';
+import boomerang        from './boomerang.js';
+import wallRide         from './wall-ride.js';
+import delayedFrontFlip from './delayed-front-flip.js';
+import jackieChan       from './jackie-chan.js';
 
 export const MOVES = [
   // Beginner
@@ -20,14 +26,20 @@ export const MOVES = [
   immelmann,
   mattyFlip,
   knifeEdge,
+  diveBomb,
+  orbit,
   // Advanced
   juicySpin,
   trippySpin,
   bowtie,
   invertedYawSpin,
+  boomerang,
+  wallRide,
   // Pro
   sbang,
   sbangLookback,
+  delayedFrontFlip,
+  jackieChan,
 ];
 
 export const LEVELS = {

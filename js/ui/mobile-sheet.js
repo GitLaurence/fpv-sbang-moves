@@ -12,8 +12,10 @@ export class MobileSheet {
 
   open() {
     this._sync();
+    this._opener = document.activeElement;
     this._backdrop.classList.add('visible');
     this._sheet.classList.add('open');
+    this._triggerBtn?.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
     this._sheet.querySelector('.mobile-sheet-list')?.focus();
   }
@@ -21,7 +23,10 @@ export class MobileSheet {
   close() {
     this._backdrop.classList.remove('visible');
     this._sheet.classList.remove('open');
+    this._triggerBtn?.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
+    if (this._opener instanceof HTMLElement) this._opener.focus();
+    this._opener = null;
   }
 
   toggle() {
@@ -75,8 +80,8 @@ export class MobileSheet {
     this._sheet = sheet;
 
     // Wire mobile button
-    document.getElementById('mobile-moves-btn')
-      ?.addEventListener('click', () => this.toggle());
+    this._triggerBtn = document.getElementById('mobile-moves-btn');
+    this._triggerBtn?.addEventListener('click', () => this.toggle());
 
     // Escape to close
     document.addEventListener('keydown', e => {

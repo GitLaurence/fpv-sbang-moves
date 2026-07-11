@@ -22,11 +22,19 @@ export class ShortcutsOverlay {
   }
 
   toggle() {
-    this._overlay.classList.toggle('visible');
+    if (this._overlay.classList.contains('visible')) {
+      this.hide();
+    } else {
+      this._opener = document.activeElement;
+      this._overlay.classList.add('visible');
+    }
   }
 
   hide() {
+    if (!this._overlay.classList.contains('visible')) return;
     this._overlay.classList.remove('visible');
+    if (this._opener instanceof HTMLElement) this._opener.focus();
+    this._opener = null;
   }
 
   // ── Build ─────────────────────────────────────────────────

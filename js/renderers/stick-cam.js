@@ -35,6 +35,17 @@ export class StickCamRenderer {
 
     // Build meter DOM once
     this._buildMeters();
+
+    // Cached theme colors — refreshed on construction and on theme change,
+    // avoiding a getComputedStyle() call on every animation frame.
+    this._panelBg = '#0b0d12';
+    this.refreshTheme();
+  }
+
+  /** Re-read theme-dependent CSS custom properties. Call after a theme switch. */
+  refreshTheme() {
+    this._panelBg = getComputedStyle(document.documentElement)
+      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
   }
 
   // ── Ghost Trail API ───────────────────────────────────────
@@ -63,6 +74,13 @@ export class StickCamRenderer {
     this._recording  = false;
     this._recLeft    = [];
     this._recRight   = [];
+  }
+
+  /** Reset live trails and smoothing state for a fresh playthrough. */
+  resetTrails() {
+    this._leftTrail  = [];
+    this._rightTrail = [];
+    this._smooth      = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
   }
 
   // ── Public ────────────────────────────────────────────────
@@ -126,8 +144,7 @@ export class StickCamRenderer {
     ctx.clearRect(0, 0, W, canvas.height);
 
     // Panel background
-    ctx.fillStyle = getComputedStyle(document.documentElement)
-      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
+    ctx.fillStyle = this._panelBg;
     ctx.fillRect(0, 0, W, canvas.height);
 
     const halfW   = W / 2;

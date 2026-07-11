@@ -40,6 +40,7 @@ const moveInfoEl    = document.getElementById('move-info');
 const resizeHandle  = document.getElementById('resize-handle');
 const mainEl        = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
+const srStatus      = document.getElementById('sr-status');
 
 // ── Renderers ──────────────────────────────────────────────
 const stickCanvas   = document.getElementById('stick-canvas');
@@ -80,7 +81,7 @@ let ghostEnabled = false;
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
   (frame) => {
-    if (_ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay) {
+    if (_ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay && !scrubbing) {
       const ytState = ytPlayer.getState();
       if (ytState === 1 /* PLAYING */) {
         const ytTime = ytPlayer.currentTime();
@@ -123,6 +124,13 @@ const engine = new PlaybackEngine(
   }
 );
 
+// ── YouTube error handler ───────────────────────────────────
+ytPlayer.onError(() => {
+  if (!_ytActive) return;
+  ytBadge.textContent = '⚠ VIDEO UNAVAILABLE';
+  ytBadge.classList.add('yt-error');
+});
+
 // ── YouTube state handler ──────────────────────────────────
 // YT.PlayerState: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
 ytPlayer.onStateChange((state) => {
@@ -130,6 +138,7 @@ ytPlayer.onStateChange((state) => {
 
   if (state === 1 /* PLAYING */) {
     ytBadge.textContent = '▶ YT VIDEO';
+    ytBadge.classList.remove('yt-error');
 
     if (_ytWaitPlay || _ytBufferPause) {
       // YT confirmed playing — sync engine to YT's exact time and start it.
@@ -189,6 +198,7 @@ function updatePlayBtn() {
     ? '<use href="#icon-pause"/>'
     : '<use href="#icon-play"/>';
   btnPlay.setAttribute('aria-label', engine.isPlaying ? 'I-pause' : 'I-play');
+  srStatus.textContent = engine.isPlaying ? 'Playing' : 'Paused';
 }
 
 function syncScrubber() {
@@ -277,9 +287,7 @@ function loadMove(move) {
   if (activeCard) activeCard.classList.add('active');
 
   // Reset renderers for fresh start
-  stickRenderer._leftTrail  = [];
-  stickRenderer._rightTrail = [];
-  stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+  stickRenderer.resetTrails();
   stickRenderer.clearGhost();
   fpvRenderer.resetSim();
 
@@ -292,6 +300,7 @@ function loadMove(move) {
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
   ytBadge.textContent        = '▶ YT VIDEO';
+  ytBadge.classList.remove('yt-error');
   fpvBadge.style.display     = _ytActive ? 'none' : '';
   if (_ytActive) {
     ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);
@@ -428,7 +437,10 @@ btnGhost.addEventListener('click', () => {
   }
 });
 
-btnSkipStart.addEventListener('click', () => engine.skipToStart());
+btnSkipStart.addEventListener('click', () => {
+  engine.skipToStart();
+  stickRenderer.clearGhost();
+});
 btnSkipEnd.addEventListener('click',   () => engine.skipToEnd());
 btnStepBack.addEventListener('click',  () => engine.stepBack());
 btnStepFwd.addEventListener('click',   () => engine.stepForward());
@@ -499,6 +511,7 @@ themeBtns.forEach(btn => {
       b.classList.toggle('active', b === btn);
       b.setAttribute('aria-pressed', String(b === btn));
     });
+    stickRenderer.refreshTheme();
   });
 });
 
