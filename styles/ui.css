@@ -342,6 +342,10 @@ kbd {
   padding: 2px 8px;
   opacity: 0;
   transform: scale(0.8);
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   transition:
     opacity   var(--dur-fast) var(--ease-snap),
     transform var(--dur-fast) var(--ease-bounce);

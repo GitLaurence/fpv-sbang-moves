@@ -366,6 +366,11 @@
   /* All dividers hidden */
   .ctrl-divider { display: none; }
 
+  /* Allow flex items to shrink below their content width so the
+     speed-group's own overflow-x:auto can kick in instead of the
+     group pushing siblings off the container edge */
+  #controls > .ctrl-group { min-width: 0; }
+
   /* Scrubber moves to row 2: full width */
   .scrubber-wrap {
     order: 20;
@@ -419,7 +424,20 @@
     font-size: 10px;
     min-height: 32px;
     min-width: 32px;
+    flex-shrink: 0;
   }
+
+  /* Let the pill row scroll horizontally instead of clipping off-screen
+     on narrow phones (e.g. 360px) when it can't fit alongside siblings */
+  .speed-group {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .speed-group::-webkit-scrollbar { display: none; }
 
   /* Loop and Mute: 40×40px icon toggles */
   .ctrl-toggle {

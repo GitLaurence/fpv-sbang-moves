@@ -17,17 +17,42 @@ const SHORTCUTS = [
 export class ShortcutsOverlay {
   constructor() {
     this._overlay = null;
+    this._opener  = null;
     this._build();
     this._bindKeys();
   }
 
   toggle() {
-    this._overlay.classList.toggle('visible');
+    this._overlay.classList.contains('visible') ? this.hide() : this.show();
+  }
+
+  show() {
+    this._opener = document.activeElement;
+    this._overlay.classList.add('visible');
+    this._overlay.querySelector('.shortcuts-close')?.focus();
+    document.addEventListener('keydown', this._onTrapKey);
   }
 
   hide() {
+    if (!this._overlay.classList.contains('visible')) return;
     this._overlay.classList.remove('visible');
+    document.removeEventListener('keydown', this._onTrapKey);
+    this._opener?.focus();
   }
+
+  // Trap Tab/Shift-Tab focus inside the open overlay (WCAG 2.1.2)
+  _onTrapKey = (e) => {
+    if (e.key !== 'Tab') return;
+    const focusable = this._overlay.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    }
+  };
 
   // ── Build ─────────────────────────────────────────────────
 

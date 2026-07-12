@@ -40,10 +40,16 @@ const moveInfoEl    = document.getElementById('move-info');
 const resizeHandle  = document.getElementById('resize-handle');
 const mainEl        = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
+const srStatus       = document.getElementById('sr-status');
 
 // ── Renderers ──────────────────────────────────────────────
 const stickCanvas   = document.getElementById('stick-canvas');
 const stickRenderer = new StickCamRenderer(stickCanvas);
+const roCanvases     = {
+  fpv:   document.getElementById('fpv-canvas'),
+  osd:   document.getElementById('osd-canvas'),
+  stick: document.getElementById('stick-canvas'),
+};
 
 const fpvCanvas     = document.getElementById('fpv-canvas');
 const osdCanvas     = document.getElementById('osd-canvas');
@@ -80,7 +86,7 @@ let ghostEnabled = false;
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
   (frame) => {
-    if (_ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay) {
+    if (!scrubbing && _ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay) {
       const ytState = ytPlayer.getState();
       if (ytState === 1 /* PLAYING */) {
         const ytTime = ytPlayer.currentTime();
@@ -101,27 +107,34 @@ const engine = new PlaybackEngine(
       }
     }
     stickRenderer.render(frame);
-    fpvRenderer.render(frame);
+    if (!_ytActive) {
+      fpvRenderer.render(frame);
+      audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
+    }
     phaseTracker.update(frame.t);
     syncScrubber();
-    audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
     audio.resume();
   },
-  // onEnd — called when engine reaches durationSec (loop=false path)
+  // onEnd — called when engine reaches durationSec (loop=false path only;
+  // the engine loops internally without calling onEnd when isLooping is true)
   () => {
     updatePlayBtn();
     pulseScrubberEnd();
     audio.silence();
     if (_ytActive) ytPlayer.pause();
     _ytLastEngineT = -1;
-    if (engine.isLooping && ghostEnabled) {
-      stickRenderer.commitRecording();
-      stickRenderer.startRecording();
-    } else if (ghostEnabled) {
-      stickRenderer.commitRecording();
-    }
+    setStatus('Natapos');
+    if (ghostEnabled) stickRenderer.commitRecording();
   }
 );
+
+// ── YouTube error handler ───────────────────────────────────
+ytPlayer.onError(() => {
+  if (!_ytActive) return;
+  ytBadge.textContent = '⚠ VIDEO UNAVAILABLE';
+  ytBadge.classList.add('yt-error');
+  setStatus('Hindi ma-load ang video');
+});
 
 // ── YouTube state handler ──────────────────────────────────
 // YT.PlayerState: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
@@ -145,6 +158,9 @@ ytPlayer.onStateChange((state) => {
       // YT started playing unexpectedly (e.g. race with pause) — stop it.
       ytPlayer.pause();
     }
+
+  } else if (state === 5 /* CUED */) {
+    ytBadge.textContent = '▶ YT VIDEO';
 
   } else if (state === 3 /* BUFFERING */) {
     ytBadge.textContent = '⏳ LOADING…';
@@ -189,13 +205,20 @@ function updatePlayBtn() {
     ? '<use href="#icon-pause"/>'
     : '<use href="#icon-play"/>';
   btnPlay.setAttribute('aria-label', engine.isPlaying ? 'I-pause' : 'I-play');
+  setStatus(engine.isPlaying ? 'Nagpe-play' : 'Naka-pause');
+}
+
+function setStatus(msg) {
+  if (srStatus) srStatus.textContent = msg;
 }
 
 function syncScrubber() {
-  const pct = engine.fraction * 100;
-  scrubber.value = Math.round(engine.fraction * 1000);
+  const pct   = engine.fraction * 100;
+  const value = Math.round(engine.fraction * 1000);
+  scrubber.value = value;
   scrubber.style.setProperty('--scrubber-pct', `${pct}%`);
-  scrubber.setAttribute('aria-valuenow',   Math.round(pct));
+  // aria-valuenow tracks the same 0–1000 scale as the native min/max/value
+  scrubber.setAttribute('aria-valuenow',   value);
   scrubber.setAttribute('aria-valuetext',  `${engine.time.toFixed(1)} seconds`);
   timeCurrent.textContent = fmtTime(engine.time);
 }
@@ -277,11 +300,14 @@ function loadMove(move) {
   if (activeCard) activeCard.classList.add('active');
 
   // Reset renderers for fresh start
-  stickRenderer._leftTrail  = [];
-  stickRenderer._rightTrail = [];
-  stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+  stickRenderer.resetTrails();
   stickRenderer.clearGhost();
   fpvRenderer.resetSim();
+
+  // Loop is per-move by convention — don't carry it over to the next move
+  engine.setLooping(false);
+  btnLoop.classList.remove('active');
+  btnLoop.setAttribute('aria-pressed', 'false');
 
   // Switch between YouTube video and canvas FPV renderer
   _ytActive      = !!move.youtubeId;
@@ -291,10 +317,14 @@ function loadMove(move) {
   fpvCanvas.style.display    = _ytActive ? 'none' : '';
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
-  ytBadge.textContent        = '▶ YT VIDEO';
+  ytBadge.textContent        = ytPlayer.ready ? '▶ YT VIDEO' : '⏳ LOADING…';
+  ytBadge.classList.remove('yt-error');
   fpvBadge.style.display     = _ytActive ? 'none' : '';
   if (_ytActive) {
     ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);
+    // cueVideoById doesn't reliably reseek when the same video is already
+    // loaded — force the offset explicitly so playback always starts at 0.
+    ytPlayer.seek(0);
   }
 
   // Load into engine (seeks to 0 and emits first frame)
@@ -303,6 +333,7 @@ function loadMove(move) {
   audio.silence();
 
   updatePlayBtn();
+  setStatus(`Na-load ang ${move.name}`);
 
   // Info panel — delegated to InfoPanel module
   const levelLabel = LEVELS[move.level]?.label ?? move.level;
@@ -428,7 +459,10 @@ btnGhost.addEventListener('click', () => {
   }
 });
 
-btnSkipStart.addEventListener('click', () => engine.skipToStart());
+btnSkipStart.addEventListener('click', () => {
+  engine.skipToStart();
+  stickRenderer.clearGhost();
+});
 btnSkipEnd.addEventListener('click',   () => engine.skipToEnd());
 btnStepBack.addEventListener('click',  () => engine.stepBack());
 btnStepFwd.addEventListener('click',   () => engine.stepForward());
@@ -602,11 +636,10 @@ document.addEventListener('keydown', e => {
 
 // ── Canvas Resize Observer ─────────────────────────────────
 const ro = new ResizeObserver(() => {
-  const ids = _ytActive
-    ? ['osd-canvas', 'stick-canvas']
-    : ['fpv-canvas', 'osd-canvas', 'stick-canvas'];
-  ids.forEach(id => {
-    const canvas = document.getElementById(id);
+  const canvases = _ytActive
+    ? [roCanvases.osd, roCanvases.stick]
+    : [roCanvases.fpv, roCanvases.osd, roCanvases.stick];
+  canvases.forEach(canvas => {
     if (!canvas) return;
     canvas.width  = canvas.offsetWidth  * devicePixelRatio;
     canvas.height = canvas.offsetHeight * devicePixelRatio;

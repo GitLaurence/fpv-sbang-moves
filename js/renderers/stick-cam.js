@@ -9,6 +9,8 @@ const CHANNEL_COLORS = {
   roll:     { hex: '#00f5d4', rgb: '0,245,212'   },
 };
 
+const METER_KEY_TO_CHANNEL = { t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' };
+
 // ── StickCamRenderer ───────────────────────────────────────
 export class StickCamRenderer {
   constructor(canvas) {
@@ -35,6 +37,17 @@ export class StickCamRenderer {
 
     // Build meter DOM once
     this._buildMeters();
+
+    // Cache theme-derived colors — avoids getComputedStyle() every frame
+    this._panelBg = '#0b0d12';
+    this._cacheThemeColors();
+    new MutationObserver(() => this._cacheThemeColors())
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+
+  _cacheThemeColors() {
+    this._panelBg = getComputedStyle(document.documentElement)
+      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
   }
 
   // ── Ghost Trail API ───────────────────────────────────────
@@ -63,6 +76,13 @@ export class StickCamRenderer {
     this._recording  = false;
     this._recLeft    = [];
     this._recRight   = [];
+  }
+
+  /** Reset live trail/smoothing state for a fresh move load. */
+  resetTrails() {
+    this._leftTrail  = [];
+    this._rightTrail = [];
+    this._smooth = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
   }
 
   // ── Public ────────────────────────────────────────────────
@@ -126,8 +146,7 @@ export class StickCamRenderer {
     ctx.clearRect(0, 0, W, canvas.height);
 
     // Panel background
-    ctx.fillStyle = getComputedStyle(document.documentElement)
-      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
+    ctx.fillStyle = this._panelBg;
     ctx.fillRect(0, 0, W, canvas.height);
 
     const halfW   = W / 2;
@@ -378,7 +397,7 @@ export class StickCamRenderer {
 
       val.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
       val.style.color = Math.abs(v) > 0.9
-        ? CHANNEL_COLORS[{ t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' }[key]].hex
+        ? CHANNEL_COLORS[METER_KEY_TO_CHANNEL[key]].hex
         : '';
     }
   }

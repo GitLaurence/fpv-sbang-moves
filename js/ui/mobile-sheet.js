@@ -7,26 +7,50 @@ export class MobileSheet {
     this._onSelect = onMoveSelect;
     this._sheet    = null;
     this._backdrop = null;
+    this._trigger  = null;
+    this._opener   = null;
     this._build();
   }
 
   open() {
     this._sync();
+    this._opener = document.activeElement;
     this._backdrop.classList.add('visible');
     this._sheet.classList.add('open');
+    this._trigger?.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
     this._sheet.querySelector('.mobile-sheet-list')?.focus();
+    document.addEventListener('keydown', this._onTrapKey);
   }
 
   close() {
     this._backdrop.classList.remove('visible');
     this._sheet.classList.remove('open');
+    this._trigger?.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
+    document.removeEventListener('keydown', this._onTrapKey);
+    this._opener?.focus();
   }
 
   toggle() {
     this._sheet.classList.contains('open') ? this.close() : this.open();
   }
+
+  // Trap Tab/Shift-Tab focus inside the open sheet (WCAG 2.1.2)
+  _onTrapKey = (e) => {
+    if (e.key !== 'Tab') return;
+    const focusable = this._sheet.querySelectorAll(
+      'button, [href], input, [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    }
+  };
 
   markActive(moveId) {
     this._sheet.querySelectorAll('.mobile-move-row').forEach(row => {
@@ -75,8 +99,8 @@ export class MobileSheet {
     this._sheet = sheet;
 
     // Wire mobile button
-    document.getElementById('mobile-moves-btn')
-      ?.addEventListener('click', () => this.toggle());
+    this._trigger = document.getElementById('mobile-moves-btn');
+    this._trigger?.addEventListener('click', () => this.toggle());
 
     // Escape to close
     document.addEventListener('keydown', e => {
