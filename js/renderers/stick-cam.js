@@ -9,6 +9,8 @@ const CHANNEL_COLORS = {
   roll:     { hex: '#00f5d4', rgb: '0,245,212'   },
 };
 
+const METER_CHANNEL = { t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' };
+
 // ── StickCamRenderer ───────────────────────────────────────
 export class StickCamRenderer {
   constructor(canvas) {
@@ -35,6 +37,22 @@ export class StickCamRenderer {
 
     // Build meter DOM once
     this._buildMeters();
+
+    // Theme-derived colors — cached to avoid getComputedStyle in the draw loop
+    this._cachePanelBg();
+  }
+
+  // ── Theme ─────────────────────────────────────────────────
+
+  _cachePanelBg() {
+    this._panelBg = getComputedStyle(document.documentElement)
+      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
+  }
+
+  /** Call after the active theme changes so cached colors stay in sync */
+  refreshTheme() {
+    this._cachePanelBg();
+    this._draw();
   }
 
   // ── Ghost Trail API ───────────────────────────────────────
@@ -126,8 +144,7 @@ export class StickCamRenderer {
     ctx.clearRect(0, 0, W, canvas.height);
 
     // Panel background
-    ctx.fillStyle = getComputedStyle(document.documentElement)
-      .getPropertyValue('--bg-panel').trim() || '#0b0d12';
+    ctx.fillStyle = this._panelBg;
     ctx.fillRect(0, 0, W, canvas.height);
 
     const halfW   = W / 2;
@@ -378,7 +395,7 @@ export class StickCamRenderer {
 
       val.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
       val.style.color = Math.abs(v) > 0.9
-        ? CHANNEL_COLORS[{ t: 'throttle', y: 'yaw', p: 'pitch', r: 'roll' }[key]].hex
+        ? CHANNEL_COLORS[METER_CHANNEL[key]].hex
         : '';
     }
   }

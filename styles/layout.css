@@ -135,6 +135,18 @@ body {
   border: var(--border-accent);
 }
 
+.panel-badge.yt-error {
+  background: rgba(255,60,60,0.25);
+  border-color: rgba(255,80,80,0.6);
+  color: #ffb3b3;
+  animation: badge-error-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes badge-error-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
 #fpv-header  { grid-area: fpv-header; }
 #stick-header { grid-area: stick-header; }
 

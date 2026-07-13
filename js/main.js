@@ -92,7 +92,7 @@ const engine = new PlaybackEngine(
           // Seek YT back instead of letting drift-correction undo the loop.
           if (prevT >= 0 && prevT - frame.t > engine.duration * 0.4) {
             ytPlayer.seek(frame.t);
-          } else if (Math.abs(ytTime - frame.t) > 0.06) {
+          } else if (!scrubbing && Math.abs(ytTime - frame.t) > 0.06) {
             // Drift: pull engine to match YT's authoritative clock
             engine.seek(Math.max(0, ytTime));
             return;
@@ -101,11 +101,18 @@ const engine = new PlaybackEngine(
       }
     }
     stickRenderer.render(frame);
-    fpvRenderer.render(frame);
     phaseTracker.update(frame.t);
     syncScrubber();
-    audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
     audio.resume();
+    if (_ytActive) {
+      // The FPV canvas is hidden behind the YT video and the video carries
+      // its own audio — skip the sim/draw/synth work entirely so it isn't
+      // wasted every frame and doesn't play a synthetic motor under the
+      // real video audio.
+      return;
+    }
+    fpvRenderer.render(frame);
+    audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
   },
   // onEnd — called when engine reaches durationSec (loop=false path)
   () => {
@@ -114,10 +121,10 @@ const engine = new PlaybackEngine(
     audio.silence();
     if (_ytActive) ytPlayer.pause();
     _ytLastEngineT = -1;
-    if (engine.isLooping && ghostEnabled) {
-      stickRenderer.commitRecording();
-      stickRenderer.startRecording();
-    } else if (ghostEnabled) {
+    // Note: onEnd only fires on the non-looping path (PlaybackEngine wraps
+    // time internally when looping without calling onEnd), so isLooping is
+    // always false here.
+    if (ghostEnabled) {
       stickRenderer.commitRecording();
     }
   }
@@ -174,6 +181,15 @@ ytPlayer.onStateChange((state) => {
       }
     }
   }
+});
+
+ytPlayer.onError(() => {
+  if (!_ytActive) return;
+  ytBadge.textContent = '⚠ VIDEO UNAVAILABLE';
+  ytBadge.classList.add('yt-error');
+  engine.pause();
+  audio.silence();
+  updatePlayBtn();
 });
 
 // ── Helpers ────────────────────────────────────────────────
@@ -292,6 +308,7 @@ function loadMove(move) {
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
   ytBadge.textContent        = '▶ YT VIDEO';
+  ytBadge.classList.remove('yt-error');
   fpvBadge.style.display     = _ytActive ? 'none' : '';
   if (_ytActive) {
     ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);
@@ -301,6 +318,11 @@ function loadMove(move) {
   engine.load(move);
   phaseTracker.load(move);
   audio.silence();
+
+  // Loop is per-move by convention — don't carry it over to the next move
+  engine.setLooping(false);
+  btnLoop.classList.remove('active');
+  btnLoop.setAttribute('aria-pressed', 'false');
 
   updatePlayBtn();
 
@@ -499,6 +521,7 @@ themeBtns.forEach(btn => {
       b.classList.toggle('active', b === btn);
       b.setAttribute('aria-pressed', String(b === btn));
     });
+    stickRenderer.refreshTheme();
   });
 });
 
@@ -561,6 +584,13 @@ document.addEventListener('keydown', e => {
 // ── Resize Handle ──────────────────────────────────────────
 (function initResize() {
   let dragging = false;
+  let splitPct = 50; // tracked in JS — getComputedStyle resolves grid-template-columns to px, not %
+
+  function applySplit() {
+    mainEl.style.gridTemplateColumns = `${splitPct}% 4px 1fr`;
+    stickRenderer.resize();
+    fpvRenderer.resize();
+  }
 
   resizeHandle.addEventListener('mousedown', e => {
     dragging = true;
@@ -573,12 +603,8 @@ document.addEventListener('keydown', e => {
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
     const rect = mainEl.getBoundingClientRect();
-    const pct  = Math.max(20, Math.min(80, (e.clientX - rect.left) / rect.width * 100));
-    const hPct = (4 / rect.width) * 100;
-    mainEl.style.gridTemplateColumns = `${pct}% ${hPct}% 1fr`;
-    // Notify renderers
-    stickRenderer.resize();
-    fpvRenderer.resize();
+    splitPct = Math.max(20, Math.min(80, (e.clientX - rect.left) / rect.width * 100));
+    applySplit();
   });
 
   document.addEventListener('mouseup', () => {
@@ -590,13 +616,11 @@ document.addEventListener('keydown', e => {
   });
 
   resizeHandle.addEventListener('keydown', e => {
-    const style  = getComputedStyle(mainEl);
-    const curPct = parseFloat(style.gridTemplateColumns);
-    const step   = 5;
-    if (e.key === 'ArrowLeft')
-      mainEl.style.gridTemplateColumns = `${Math.max(20, curPct - step)}% 4px 1fr`;
-    if (e.key === 'ArrowRight')
-      mainEl.style.gridTemplateColumns = `${Math.min(80, curPct + step)}% 4px 1fr`;
+    const step = 5;
+    if (e.key === 'ArrowLeft')       splitPct = Math.max(20, splitPct - step);
+    else if (e.key === 'ArrowRight') splitPct = Math.min(80, splitPct + step);
+    else return;
+    applySplit();
   });
 })();
 
