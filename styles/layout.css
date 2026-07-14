@@ -135,6 +135,12 @@ body {
   border: var(--border-accent);
 }
 
+.panel-badge.yt-error {
+  background: rgba(255, 60, 60, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 80, 80, 0.5);
+}
+
 #fpv-header  { grid-area: fpv-header; }
 #stick-header { grid-area: stick-header; }
 
@@ -211,6 +217,11 @@ body {
   box-shadow: var(--glow-primary);
 }
 
+#resize-handle:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
 /* ── Move Info Panel ──────────────────────────────────────── */
 #move-info {
   grid-area: move-info;
@@ -282,6 +293,27 @@ body {
   height: var(--controls-height);
   position: relative;
   z-index: 10;
+}
+
+#mobile-moves-btn {
+  display: none;
+  position: fixed;
+  bottom: calc(var(--controls-height) + 16px);
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-primary);
+  color: var(--bg-void);
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--glow-primary);
+  z-index: 100;
+  transition: transform var(--dur-fast) var(--ease-bounce);
+}
+
+#mobile-moves-btn:active {
+  transform: scale(0.92);
 }
 
 /* ── Responsive ───────────────────────────────────────────── */
@@ -402,25 +434,4 @@ body {
   #mobile-moves-btn {
     display: flex;
   }
-}
-
-#mobile-moves-btn {
-  display: none;
-  position: fixed;
-  bottom: calc(var(--controls-height) + 16px);
-  right: 16px;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-pill);
-  background: var(--accent-primary);
-  color: var(--bg-void);
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--glow-primary);
-  z-index: 100;
-  transition: transform var(--dur-fast) var(--ease-bounce);
-}
-
-#mobile-moves-btn:active {
-  transform: scale(0.92);
 }

@@ -7,13 +7,17 @@ export class MobileSheet {
     this._onSelect = onMoveSelect;
     this._sheet    = null;
     this._backdrop = null;
+    this._trigger  = null;
+    this._opener   = null;
     this._build();
   }
 
   open() {
     this._sync();
+    this._opener = document.activeElement;
     this._backdrop.classList.add('visible');
     this._sheet.classList.add('open');
+    this._trigger?.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
     this._sheet.querySelector('.mobile-sheet-list')?.focus();
   }
@@ -21,7 +25,10 @@ export class MobileSheet {
   close() {
     this._backdrop.classList.remove('visible');
     this._sheet.classList.remove('open');
+    this._trigger?.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
+    this._opener?.focus();
+    this._opener = null;
   }
 
   toggle() {
@@ -75,13 +82,32 @@ export class MobileSheet {
     this._sheet = sheet;
 
     // Wire mobile button
-    document.getElementById('mobile-moves-btn')
-      ?.addEventListener('click', () => this.toggle());
+    this._trigger = document.getElementById('mobile-moves-btn');
+    this._trigger?.addEventListener('click', () => this.toggle());
 
-    // Escape to close
+    // Escape to close, Tab to stay trapped inside the sheet while open
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && this._sheet.classList.contains('open')) this.close();
+      if (!this._sheet.classList.contains('open')) return;
+      if (e.key === 'Escape') { this.close(); return; }
+      if (e.key === 'Tab') this._trapTab(e);
     });
+  }
+
+  _trapTab(e) {
+    const focusable = this._sheet.querySelectorAll(
+      'button, [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   }
 
   // ── Sync move list ────────────────────────────────────────

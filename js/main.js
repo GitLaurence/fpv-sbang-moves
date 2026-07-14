@@ -40,6 +40,7 @@ const moveInfoEl    = document.getElementById('move-info');
 const resizeHandle  = document.getElementById('resize-handle');
 const mainEl        = document.getElementById('main');
 const mobileMoveBtn = document.getElementById('mobile-moves-btn');
+const srStatus      = document.getElementById('sr-status');
 
 // ── Renderers ──────────────────────────────────────────────
 const stickCanvas   = document.getElementById('stick-canvas');
@@ -57,6 +58,7 @@ let _ytActive      = false;
 let _ytBufferPause = false; // engine paused because YT was buffering mid-play
 let _ytWaitPlay    = false; // play requested; engine held until YT fires PLAYING
 let _ytLastEngineT = -1;    // previous frame's engine time — used to detect loops
+let _ytErrored     = false; // true if the current video failed to load/embed
 
 // ── UI Modules ─────────────────────────────────────────────
 const infoPanel    = new InfoPanel();
@@ -80,7 +82,7 @@ let ghostEnabled = false;
 const engine = new PlaybackEngine(
   // onFrame — called every rAF tick
   (frame) => {
-    if (_ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay) {
+    if (!scrubbing && _ytActive && engine.isPlaying && !_ytBufferPause && !_ytWaitPlay) {
       const ytState = ytPlayer.getState();
       if (ytState === 1 /* PLAYING */) {
         const ytTime = ytPlayer.currentTime();
@@ -104,21 +106,24 @@ const engine = new PlaybackEngine(
     fpvRenderer.render(frame);
     phaseTracker.update(frame.t);
     syncScrubber();
-    audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
+    if (!_ytActive) audio.update(frame.throttle ?? 0, fpvRenderer.sim?.speed ?? 0);
     audio.resume();
   },
-  // onEnd — called when engine reaches durationSec (loop=false path)
+  // onEnd — called when engine reaches durationSec (loop=false path only;
+  // looping wrap is handled by onLoop below)
   () => {
     updatePlayBtn();
     pulseScrubberEnd();
     audio.silence();
     if (_ytActive) ytPlayer.pause();
     _ytLastEngineT = -1;
-    if (engine.isLooping && ghostEnabled) {
+    if (ghostEnabled) stickRenderer.commitRecording();
+  },
+  // onLoop — called when a looping move wraps back to t=0
+  () => {
+    if (ghostEnabled) {
       stickRenderer.commitRecording();
       stickRenderer.startRecording();
-    } else if (ghostEnabled) {
-      stickRenderer.commitRecording();
     }
   }
 );
@@ -156,6 +161,7 @@ ytPlayer.onStateChange((state) => {
     }
 
   } else if (state === 0 /* ENDED */) {
+    if (_ytErrored) return; // error badge already shown — don't clobber it or retry
     ytBadge.textContent = '▶ YT VIDEO';
     if (engine.isPlaying && engine.isLooping) {
       // Loop mode: seek YT back to the start of the move clip and replay.
@@ -176,6 +182,19 @@ ytPlayer.onStateChange((state) => {
   }
 });
 
+ytPlayer.onError(() => {
+  if (!_ytActive) return;
+  _ytErrored = true;
+  ytBadge.textContent = '⚠ VIDEO UNAVAILABLE';
+  ytBadge.classList.add('yt-error');
+  srStatus.textContent = 'Hindi ma-load ang video';
+  if (engine.isPlaying) {
+    engine.pause();
+    audio.silence();
+    updatePlayBtn();
+  }
+});
+
 // ── Helpers ────────────────────────────────────────────────
 function fmtTime(sec) {
   const m  = Math.floor(sec / 60);
@@ -189,6 +208,7 @@ function updatePlayBtn() {
     ? '<use href="#icon-pause"/>'
     : '<use href="#icon-play"/>';
   btnPlay.setAttribute('aria-label', engine.isPlaying ? 'I-pause' : 'I-play');
+  if (srStatus) srStatus.textContent = engine.isPlaying ? 'Playing' : 'Paused';
 }
 
 function syncScrubber() {
@@ -277,9 +297,7 @@ function loadMove(move) {
   if (activeCard) activeCard.classList.add('active');
 
   // Reset renderers for fresh start
-  stickRenderer._leftTrail  = [];
-  stickRenderer._rightTrail = [];
-  stickRenderer._smooth     = { throttle: 0, yaw: 0, pitch: 0, roll: 0 };
+  stickRenderer.resetLive();
   stickRenderer.clearGhost();
   fpvRenderer.resetSim();
 
@@ -288,10 +306,12 @@ function loadMove(move) {
   _ytBufferPause = false;
   _ytWaitPlay    = false;
   _ytLastEngineT = -1;
+  _ytErrored     = false;
   fpvCanvas.style.display    = _ytActive ? 'none' : '';
   ytContainer.style.display  = _ytActive ? '' : 'none';
   ytBadge.style.display      = _ytActive ? '' : 'none';
   ytBadge.textContent        = '▶ YT VIDEO';
+  ytBadge.classList.remove('yt-error');
   fpvBadge.style.display     = _ytActive ? 'none' : '';
   if (_ytActive) {
     ytPlayer.load(move.youtubeId, move.youtubeStart ?? 0);
@@ -428,7 +448,10 @@ btnGhost.addEventListener('click', () => {
   }
 });
 
-btnSkipStart.addEventListener('click', () => engine.skipToStart());
+btnSkipStart.addEventListener('click', () => {
+  engine.skipToStart();
+  stickRenderer.clearGhost();
+});
 btnSkipEnd.addEventListener('click',   () => engine.skipToEnd());
 btnStepBack.addEventListener('click',  () => engine.stepBack());
 btnStepFwd.addEventListener('click',   () => engine.stepForward());
@@ -495,6 +518,7 @@ scrubber.addEventListener('mousemove', e => {
 themeBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     document.documentElement.dataset.theme = btn.dataset.theme;
+    document.dispatchEvent(new CustomEvent('themechange'));
     themeBtns.forEach(b => {
       b.classList.toggle('active', b === btn);
       b.setAttribute('aria-pressed', String(b === btn));
@@ -561,6 +585,11 @@ document.addEventListener('keydown', e => {
 // ── Resize Handle ──────────────────────────────────────────
 (function initResize() {
   let dragging = false;
+  let splitPct = 50; // tracked in JS — getComputedStyle().gridTemplateColumns resolves to px, not %
+
+  function applySplit() {
+    mainEl.style.gridTemplateColumns = `${splitPct}% 4px 1fr`;
+  }
 
   resizeHandle.addEventListener('mousedown', e => {
     dragging = true;
@@ -573,9 +602,8 @@ document.addEventListener('keydown', e => {
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
     const rect = mainEl.getBoundingClientRect();
-    const pct  = Math.max(20, Math.min(80, (e.clientX - rect.left) / rect.width * 100));
-    const hPct = (4 / rect.width) * 100;
-    mainEl.style.gridTemplateColumns = `${pct}% ${hPct}% 1fr`;
+    splitPct = Math.max(20, Math.min(80, (e.clientX - rect.left) / rect.width * 100));
+    applySplit();
     // Notify renderers
     stickRenderer.resize();
     fpvRenderer.resize();
@@ -590,23 +618,22 @@ document.addEventListener('keydown', e => {
   });
 
   resizeHandle.addEventListener('keydown', e => {
-    const style  = getComputedStyle(mainEl);
-    const curPct = parseFloat(style.gridTemplateColumns);
-    const step   = 5;
-    if (e.key === 'ArrowLeft')
-      mainEl.style.gridTemplateColumns = `${Math.max(20, curPct - step)}% 4px 1fr`;
-    if (e.key === 'ArrowRight')
-      mainEl.style.gridTemplateColumns = `${Math.min(80, curPct + step)}% 4px 1fr`;
+    const step = 5;
+    if (e.key === 'ArrowLeft')  splitPct = Math.max(20, splitPct - step);
+    if (e.key === 'ArrowRight') splitPct = Math.min(80, splitPct + step);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      applySplit();
+      stickRenderer.resize();
+      fpvRenderer.resize();
+    }
   });
 })();
 
 // ── Canvas Resize Observer ─────────────────────────────────
+const resizableCanvases = [fpvCanvas, osdCanvas, stickCanvas];
 const ro = new ResizeObserver(() => {
-  const ids = _ytActive
-    ? ['osd-canvas', 'stick-canvas']
-    : ['fpv-canvas', 'osd-canvas', 'stick-canvas'];
-  ids.forEach(id => {
-    const canvas = document.getElementById(id);
+  const canvases = _ytActive ? [osdCanvas, stickCanvas] : resizableCanvases;
+  canvases.forEach(canvas => {
     if (!canvas) return;
     canvas.width  = canvas.offsetWidth  * devicePixelRatio;
     canvas.height = canvas.offsetHeight * devicePixelRatio;

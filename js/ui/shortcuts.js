@@ -17,16 +17,25 @@ const SHORTCUTS = [
 export class ShortcutsOverlay {
   constructor() {
     this._overlay = null;
+    this._opener  = null;
     this._build();
     this._bindKeys();
   }
 
   toggle() {
-    this._overlay.classList.toggle('visible');
+    this._overlay.classList.contains('visible') ? this.hide() : this.show();
+  }
+
+  show() {
+    this._opener = document.activeElement;
+    this._overlay.classList.add('visible');
+    this._overlay.querySelector('.shortcuts-close')?.focus();
   }
 
   hide() {
     this._overlay.classList.remove('visible');
+    this._opener?.focus();
+    this._opener = null;
   }
 
   // ── Build ─────────────────────────────────────────────────
@@ -86,9 +95,27 @@ export class ShortcutsOverlay {
 
   _bindKeys() {
     document.addEventListener('keydown', e => {
+      if (this._overlay.classList.contains('visible')) {
+        if (e.key === 'Escape') { this.hide(); return; }
+        if (e.key === 'Tab') { this._trapTab(e); return; }
+      }
       if (e.target.tagName === 'INPUT') return;
       if (e.key === '?') { e.preventDefault(); this.toggle(); }
-      if (e.key === 'Escape') this.hide();
     });
+  }
+
+  _trapTab(e) {
+    const focusable = this._overlay.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   }
 }
